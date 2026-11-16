@@ -1,0 +1,15 @@
+2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-04 reproduced: 'NoneType' object has no attribute 'get'
+Traceback (most recent call last):
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 80, in scenario_bug_04
+    apply_coupon_to_cart(cart["id"], "NONEXISTENT_CODE")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\cart.py", line 57, in apply_coupon_to_cart
+    if not coupon.get("is_active"):
+           ^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'
+
+[FAIL] BUG-04: 'NoneType' object has no attribute 'get'
+
+============================================================
+Summary: 1/1 failures reproduced
+============================================================

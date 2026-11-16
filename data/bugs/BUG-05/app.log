@@ -1,0 +1,22 @@
+
+============================================================
+Running 1 scenario(s) on demo_repo at HEAD
+============================================================
+
+--> Testing BUG-05 ...
+2026-11-16 19:41:04 [INFO] [shopapp.scenarios] Executing Scenario BUG-05: Calculating payment breakdown on $89.99 subtotal...
+2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-05 reproduced: PrecisionError: Payment total contains fractional cents: 99.213975
+Traceback (most recent call last):
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 93, in scenario_bug_05
+    breakdown = calculate_payment_breakdown(89.99)
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\payments.py", line 30, in calculate_payment_breakdown
+    raise ValueError(
+        f"PrecisionError: Payment total contains fractional cents: {total}"
+    )
+ValueError: PrecisionError: Payment total contains fractional cents: 99.213975
+
+[FAIL] BUG-05: PrecisionError: Payment total contains fractional cents: 99.213975
+
+============================================================
+Summary: 1/1 failures reproduced
+============================================================

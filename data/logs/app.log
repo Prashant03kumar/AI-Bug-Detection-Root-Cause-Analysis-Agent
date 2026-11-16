@@ -1,0 +1,97 @@
+
+============================================================
+Running 10 scenario(s) on demo_repo at HEAD
+============================================================
+
+--> Testing BUG-01 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-01: Order confirmation for user with None preferences...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-01 reproduced: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 39, in scenario_bug_01
+    result = send_order_confirmation("usr_002", "ord_test_01", 49.50)
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\notifications.py", line 37, in send_order_confirmation
+    if get_user_notification_preference(user_id, "email"):
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\users.py", line 38, in get_user_notification_preference
+    return bool(user["preferences"][channel])
+                ~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+
+[FAIL] BUG-01: 'NoneType' object is not subscriptable
+
+--> Testing BUG-02 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-02: Bulk discount for 25 items at $12.00...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-02 reproduced: CalculationMismatch: Bulk discount for 25 items was $30.00, expected $60.00 (20% tier omitted)
+[FAIL] BUG-02: CalculationMismatch: Bulk discount for 25 items was $30.00, expected $60.00 (20% tier omitted)
+
+--> Testing BUG-03 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-03: Purchasing exact available stock (5 of 5)...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-03 reproduced: InsufficientStockError: Unable to reserve 5 units of 'prod_101' when available stock is 5 (operator > rejected exact match)
+[FAIL] BUG-03: InsufficientStockError: Unable to reserve 5 units of 'prod_101' when available stock is 5 (operator > rejected exact match)
+
+--> Testing BUG-04 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-04: Applying non-existent coupon code...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-04 reproduced: 'NoneType' object has no attribute 'get'
+Traceback (most recent call last):
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 80, in scenario_bug_04
+    apply_coupon_to_cart(cart["id"], "NONEXISTENT_CODE")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\cart.py", line 57, in apply_coupon_to_cart
+    if not coupon.get("is_active"):
+           ^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'
+
+[FAIL] BUG-04: 'NoneType' object has no attribute 'get'
+
+--> Testing BUG-05 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-05: Calculating payment breakdown on $89.99 subtotal...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-05 reproduced: PrecisionError: Payment total contains fractional cents: 99.213975
+Traceback (most recent call last):
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 93, in scenario_bug_05
+    breakdown = calculate_payment_breakdown(89.99)
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\payments.py", line 30, in calculate_payment_breakdown
+    raise ValueError(
+        f"PrecisionError: Payment total contains fractional cents: {total}"
+    )
+ValueError: PrecisionError: Payment total contains fractional cents: 99.213975
+
+[FAIL] BUG-05: PrecisionError: Payment total contains fractional cents: 99.213975
+
+--> Testing BUG-06 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-06: Placing order with line items...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-06 reproduced: 'item_id'
+Traceback (most recent call last):
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 108, in scenario_bug_06
+    order = place_order("usr_001", cart["id"])
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\orders.py", line 43, in place_order
+    line_items = assemble_order_items(cart["items"])
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\orders.py", line 20, in assemble_order_items
+    "product_id": item["item_id"],
+                  ~~~~^^^^^^^^^^^
+KeyError: 'item_id'
+
+[FAIL] BUG-06: 'item_id'
+
+--> Testing BUG-07 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-07: Queue notifications across sequential user sessions...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-07 reproduced: CrossSessionLeak: Default channels list polluted with previous user session state: ['user_audit_usr_001', 'user_audit_usr_002']
+[FAIL] BUG-07: CrossSessionLeak: Default channels list polluted with previous user session state: ['user_audit_usr_001', 'user_audit_usr_002']
+
+--> Testing BUG-08 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-08: Saving invalid record to existing table...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-08 reproduced: SilentDataLoss: Database save returned True for corrupted payload, but record was dropped
+[FAIL] BUG-08: SilentDataLoss: Database save returned True for corrupted payload, but record was dropped
+
+--> Testing BUG-09 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-09: Reading stock from cache after stock decrement...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-09 reproduced: StaleCacheAnomaly: Warehouse cache returned stale count 50 after reserving 20 units (actual stock: 30)
+[FAIL] BUG-09: StaleCacheAnomaly: Warehouse cache returned stale count 50 after reserving 20 units (actual stock: 30)
+
+--> Testing BUG-10 ...
+2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-10: Formatting $49.50 charge for gateway payload...
+2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-10 reproduced: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)
+[FAIL] BUG-10: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)
+
+============================================================
+Summary: 10/10 failures reproduced
+============================================================

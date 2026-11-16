@@ -1,0 +1,138 @@
+[
+  {
+    "ticket_id": "TICK-101",
+    "title": "TypeError on checkout for anonymous guest profiles",
+    "description": "Users checking out without saving account preferences encountered a crash during notification dispatch when preferences attribute was None.",
+    "resolution": "Added defensive check `(user.get('preferences') or {}).get(key, default)` in user preference lookup.",
+    "files_touched": [
+      "shopapp/users.py",
+      "shopapp/notifications.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-102",
+    "title": "VIP tier promotion omitted in tiered shipping calculation",
+    "description": "Customers eligible for free VIP tier shipping were charged standard rate due to iteration stopping at len(tiers) - 1.",
+    "resolution": "Corrected loop range to include upper bound in shipping tier comparator.",
+    "files_touched": [
+      "shopapp/discounts.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-103",
+    "title": "Unable to clear out final warehouse inventory unit",
+    "description": "Customers could not buy the last remaining item in stock; system reported out of stock when available == requested.",
+    "resolution": "Fixed operator from greater-than to greater-than-or-equal in warehouse reservation check.",
+    "files_touched": [
+      "shopapp/inventory.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-104",
+    "title": "Crash when entering invalid promotional gift code",
+    "description": "Gift code verification threw AttributeError 'NoneType' when a non-existent code was typed into cart checkout.",
+    "resolution": "Checked `if code_obj is None` before querying `.is_active` attribute.",
+    "files_touched": [
+      "shopapp/cart.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-105",
+    "title": "Tax computation mismatch in European VAT calculations",
+    "description": "Floating point inaccuracies led to subcent discrepancies ($10.000000000002) that failed settlement validation.",
+    "resolution": "Applied explicit `round(amt, 2)` to each tax intermediate step.",
+    "files_touched": [
+      "shopapp/payments.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-106",
+    "title": "KeyError during invoice generation from warehouse payload",
+    "description": "Invoice worker crashed looking for 'sku_id' which was changed to 'product_id' in API response payload.",
+    "resolution": "Updated dict key lookup to match standardized catalog schema.",
+    "files_touched": [
+      "shopapp/orders.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-107",
+    "title": "SMS dispatch logs leaking recipients from earlier SMS batches",
+    "description": "Default list parameter in batch SMS worker was accumulating phone numbers across requests.",
+    "resolution": "Replaced mutable list default parameter `recipients=[]` with `None` default idiom.",
+    "files_touched": [
+      "shopapp/notifications.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-108",
+    "title": "Silent failure when updating customer loyalty points",
+    "description": "Database helper caught all exceptions without re-raising or logging, making disk quota failures undetectable.",
+    "resolution": "Removed blanket exception suppression and added explicit logger.error.",
+    "files_touched": [
+      "shopapp/db.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-201",
+    "title": "Fix favicon 404 in web asset pipeline",
+    "description": "Browser console logged missing favicon.ico on dashboard homepage.",
+    "resolution": "Added static route handler and default svg icon in web router.",
+    "files_touched": [
+      "ui/static/favicon.ico"
+    ]
+  },
+  {
+    "ticket_id": "TICK-202",
+    "title": "Upgrade bcrypt dependency for security advisory",
+    "description": "Dependabot reported moderate CVE vulnerability in older password hashing library.",
+    "resolution": "Bumped bcrypt version in requirements.txt.",
+    "files_touched": [
+      "requirements.txt"
+    ]
+  },
+  {
+    "ticket_id": "TICK-203",
+    "title": "Update GDPR export script for archived accounts",
+    "description": "Data privacy export tool failed to include deleted user records older than 180 days.",
+    "resolution": "Adjusted SQL query filter in archive export batch job.",
+    "files_touched": [
+      "scripts/gdpr_export.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-204",
+    "title": "Support dark mode color theme in CSS styles",
+    "description": "Contrast ratio in modal dialogs was illegible when OS system theme was set to dark.",
+    "resolution": "Updated CSS variables and added prefers-color-scheme media queries.",
+    "files_touched": [
+      "ui/styles.css"
+    ]
+  },
+  {
+    "ticket_id": "TICK-205",
+    "title": "Add international phone number format validation",
+    "description": "Checkout form rejected UK and German phone numbers starting with +44.",
+    "resolution": "Switched from strict US regex to google-libphonenumber parser.",
+    "files_touched": [
+      "shopapp/utils.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-206",
+    "title": "Correct spelling of 'fulfillment' in email subject line",
+    "description": "Order dispatch email header had typo 'fullfillment'.",
+    "resolution": "Fixed typo in email template string constant.",
+    "files_touched": [
+      "shopapp/notifications.py"
+    ]
+  },
+  {
+    "ticket_id": "TICK-207",
+    "title": "Optimize docker build cache layers",
+    "description": "CI pipeline was taking 15 minutes because requirements were re-downloaded every build.",
+    "resolution": "Rearranged Dockerfile instructions to copy requirements.txt before application code.",
+    "files_touched": [
+      "Dockerfile"
+    ]
+  }
+]

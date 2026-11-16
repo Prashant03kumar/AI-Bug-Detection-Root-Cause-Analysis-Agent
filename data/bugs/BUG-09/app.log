@@ -1,0 +1,13 @@
+
+============================================================
+Running 1 scenario(s) on demo_repo at HEAD
+============================================================
+
+--> Testing BUG-09 ...
+2026-11-16 19:41:04 [INFO] [shopapp.scenarios] Executing Scenario BUG-09: Reading stock from cache after stock decrement...
+2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-09 reproduced: StaleCacheAnomaly: Warehouse cache returned stale count 50 after reserving 20 units (actual stock: 30)
+[FAIL] BUG-09: StaleCacheAnomaly: Warehouse cache returned stale count 50 after reserving 20 units (actual stock: 30)
+
+============================================================
+Summary: 1/1 failures reproduced
+============================================================

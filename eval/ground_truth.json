@@ -1,0 +1,132 @@
+{
+  "BUG-01": {
+    "bug_id": "BUG-01",
+    "root_cause_summary": "Direct dictionary indexing user['preferences'][channel] raises TypeError when preferences is None for uninitialized users.",
+    "root_cause_file": "shopapp/users.py",
+    "root_cause_function": "get_user_notification_preference",
+    "line_range": [
+      32,
+      38
+    ],
+    "introducing_commit_hash": "1f3a4dfcbb5999cded20e5f972896788de55604d",
+    "bug_type": "none_undefined_access",
+    "fix_description": "Restore the null-check: if preferences is None return default opt-in, or use (user.get('preferences') or {}).get(channel, True)."
+  },
+  "BUG-02": {
+    "bug_id": "BUG-02",
+    "root_cause_summary": "Off-by-one iteration using range(len(tiers) - 1) silently omits the highest tier (20+ items, 20% discount).",
+    "root_cause_file": "shopapp/discounts.py",
+    "root_cause_function": "calculate_bulk_discount",
+    "line_range": [
+      6,
+      21
+    ],
+    "introducing_commit_hash": "ded162c00814648bb2e845adf48eb374529818f3",
+    "bug_type": "off_by_one",
+    "fix_description": "Iterate directly over tiers with `for threshold, pct in tiers:` or use `range(len(tiers))` so all thresholds are evaluated."
+  },
+  "BUG-03": {
+    "bug_id": "BUG-03",
+    "root_cause_summary": "Strict inequality stock > quantity instead of stock >= quantity rejects orders attempting to purchase the exact remaining stock.",
+    "root_cause_file": "shopapp/inventory.py",
+    "root_cause_function": "check_and_reserve_stock",
+    "line_range": [
+      36,
+      48
+    ],
+    "introducing_commit_hash": "b74219cbcb57bd396b2610e8584f1c5b0b83690c",
+    "bug_type": "wrong_operator",
+    "fix_description": "Change comparison operator from `if stock > quantity:` to `if stock >= quantity:`."
+  },
+  "BUG-04": {
+    "bug_id": "BUG-04",
+    "root_cause_summary": "Missing null-check on coupon lookup returns None for invalid codes, causing AttributeError on coupon.get('is_active').",
+    "root_cause_file": "shopapp/cart.py",
+    "root_cause_function": "apply_coupon_to_cart",
+    "line_range": [
+      50,
+      63
+    ],
+    "introducing_commit_hash": "b116e78c4adbc329630f842f8c514459087d5b6c",
+    "bug_type": "missing_null_check",
+    "fix_description": "Add null check `if coupon is None: raise ValueError(f\"Coupon '{coupon_code}' does not exist\")` before accessing coupon fields."
+  },
+  "BUG-05": {
+    "bug_id": "BUG-05",
+    "root_cause_summary": "Floating-point arithmetic without monetary rounding causes precision drift and validation failure on fractional cents.",
+    "root_cause_file": "shopapp/payments.py",
+    "root_cause_function": "calculate_payment_breakdown",
+    "line_range": [
+      19,
+      33
+    ],
+    "introducing_commit_hash": "8a05e0202d90927e4152550c1bc4f1c93f747474",
+    "bug_type": "float_rounding",
+    "fix_description": "Apply `round(value, 2)` to tax, fee, and total calculation at each financial step."
+  },
+  "BUG-06": {
+    "bug_id": "BUG-06",
+    "root_cause_summary": "Accessing non-existent key item['item_id'] instead of item['product_id'] raises KeyError during order assembly.",
+    "root_cause_file": "shopapp/orders.py",
+    "root_cause_function": "assemble_order_items",
+    "line_range": [
+      14,
+      25
+    ],
+    "introducing_commit_hash": "047d159b756bccabe8fc9ae46980ea0082834706",
+    "bug_type": "wrong_dict_key",
+    "fix_description": "Update dict access from `item['item_id']` back to `item['product_id']`."
+  },
+  "BUG-07": {
+    "bug_id": "BUG-07",
+    "root_cause_summary": "Mutable default argument channels: List[str] = [] retains modified state across sequential function invocations.",
+    "root_cause_file": "shopapp/notifications.py",
+    "root_cause_function": "queue_notification",
+    "line_range": [
+      9,
+      25
+    ],
+    "introducing_commit_hash": "0b1b95d76b701b37a50c36c5a28ad3c390bc7abe",
+    "bug_type": "mutable_default_argument",
+    "fix_description": "Set default argument to None and initialize inside function body with `channels = list(channels) if channels is not None else ['in_app']`."
+  },
+  "BUG-08": {
+    "bug_id": "BUG-08",
+    "root_cause_summary": "Overbroad try-except block suppresses exceptions during db.save and returns True, masking dropped records.",
+    "root_cause_file": "shopapp/db.py",
+    "root_cause_function": "save",
+    "line_range": [
+      84,
+      95
+    ],
+    "introducing_commit_hash": "3505d383231068aae2897cae0e9e2df0f371d1b8",
+    "bug_type": "swallowed_exception",
+    "fix_description": "Remove the generic `except Exception: return True` or allow exceptions to propagate to caller."
+  },
+  "BUG-09": {
+    "bug_id": "BUG-09",
+    "root_cause_summary": "Warehouse stock cache invalidation was commented out, leading to stale inventory counts after reservations.",
+    "root_cause_file": "shopapp/inventory.py",
+    "root_cause_function": "check_and_reserve_stock",
+    "line_range": [
+      36,
+      48
+    ],
+    "introducing_commit_hash": "d8d4d812f69056fff8f7a1a051b0b2407c7a2ca3",
+    "bug_type": "stale_cache",
+    "fix_description": "Uncomment `invalidate_stock_cache(product_id)` in `check_and_reserve_stock` so cached counts stay synchronized with DB."
+  },
+  "BUG-10": {
+    "bug_id": "BUG-10",
+    "root_cause_summary": "Gateway payload calculation divides dollars by 100 instead of multiplying, undercharging or failing minimum threshold.",
+    "root_cause_file": "shopapp/payments.py",
+    "root_cause_function": "format_gateway_payload",
+    "line_range": [
+      8,
+      16
+    ],
+    "introducing_commit_hash": "974749fe1dee10a9be527785fb601bf44edccabc",
+    "bug_type": "wrong_unit_conversion",
+    "fix_description": "Multiply by 100 instead of dividing: `amount_cents = int(round(amount_in_dollars * 100))`."
+  }
+}

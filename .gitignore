@@ -21,6 +21,7 @@ __pycache__/
 # Logs
 *.log
 !data/*.log
+!data/**/*.log
 
 # IDE & OS
 .vscode/

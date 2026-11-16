@@ -1,0 +1,16 @@
+2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-06 reproduced: 'item_id'
+Traceback (most recent call last):
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 108, in scenario_bug_06
+    order = place_order("usr_001", cart["id"])
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\orders.py", line 43, in place_order
+    line_items = assemble_order_items(cart["items"])
+  File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\shopapp\orders.py", line 20, in assemble_order_items
+    "product_id": item["item_id"],
+                  ~~~~^^^^^^^^^^^
+KeyError: 'item_id'
+
+[FAIL] BUG-06: 'item_id'
+
+============================================================
+Summary: 1/1 failures reproduced
+============================================================
