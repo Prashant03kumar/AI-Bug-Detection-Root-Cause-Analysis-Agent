@@ -15,7 +15,7 @@ logger = get_logger("tools.commit_diff")
 
 class ShowCommitDiffArgs(BaseModel):
     """Input schema for show_commit_diff tool."""
-    commit_hash: str = Field(..., description="Commit SHA or branch tag to inspect (e.g. '1f3a4df')")
+    commit_hash: str = Field(..., description="Commit SHA or branch tag to inspect (e.g. 'a1b2c3d')")
     file: Optional[str] = Field(default=None, description="Optional relative file path to restrict diff to")
 
 

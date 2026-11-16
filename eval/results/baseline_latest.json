@@ -1,0 +1,660 @@
+{
+  "timestamp": "20261116_203951",
+  "type": "baseline_no_rag",
+  "summary": {
+    "total_bugs": 10,
+    "file_accuracy": 0.5,
+    "function_accuracy": 0.5,
+    "line_overlap_accuracy": 0.8,
+    "commit_accuracy": 0.0,
+    "bug_type_accuracy": 0.2,
+    "grounded_accuracy": 0.0,
+    "avg_semantic_score": 0.83,
+    "avg_confidence": 0.855,
+    "avg_latency_sec": 13.93,
+    "avg_steps": 1.0,
+    "avg_tokens": 260,
+    "calibration": {
+      "calibrated": true,
+      "mean_confidence_correct": 0.94,
+      "mean_confidence_incorrect": 0.77
+    },
+    "failures_count": 10,
+    "failures": [
+      {
+        "bug_id": "BUG-01",
+        "file_correct": true,
+        "commit_correct": false,
+        "semantic_score": 0.5,
+        "reported_file": "shopapp/users.py",
+        "reported_func": "get_user_notification_preference",
+        "justification": "The agent identified a missing null check on an object leading to a TypeError, but wrongly targeted the user object being None rather than the preferences dictionary being None during dictionary indexing."
+      },
+      {
+        "bug_id": "BUG-02",
+        "file_correct": true,
+        "commit_correct": false,
+        "semantic_score": 0.5,
+        "reported_file": "shopapp/discounts.py",
+        "reported_func": "calculate_bulk_discount",
+        "justification": "The agent correctly identified the resulting symptom (skipping the 20% discount bracket for quantities like 25), but omitted the exact code-level mechanism (the off-by-one error in range(len(tiers) - 1))."
+      },
+      {
+        "bug_id": "BUG-03",
+        "file_correct": false,
+        "commit_correct": false,
+        "semantic_score": 1.0,
+        "reported_file": "shopapp/scenarios.py",
+        "reported_func": "reserve_stock",
+        "justification": "The agent accurately and precisely identified the flawed comparison operator and its exact impact on boundary conditions matching the ground truth."
+      },
+      {
+        "bug_id": "BUG-04",
+        "file_correct": true,
+        "commit_correct": false,
+        "semantic_score": 1.0,
+        "reported_file": "shopapp/cart.py",
+        "reported_func": "apply_coupon_to_cart",
+        "justification": "The agent accurately identified the exact root cause mechanism, noting that the coupon lookup returns None and the code fails to check for this before calling .get() on it."
+      },
+      {
+        "bug_id": "BUG-05",
+        "file_correct": true,
+        "commit_correct": false,
+        "semantic_score": 1.0,
+        "reported_file": "shopapp/payments.py",
+        "reported_func": "calculate_payment_breakdown",
+        "justification": "The agent accurately identified floating-point arithmetic without proper decimal rounding on fractional amounts as the exact root cause."
+      },
+      {
+        "bug_id": "BUG-06",
+        "file_correct": true,
+        "commit_correct": false,
+        "semantic_score": 1.0,
+        "reported_file": "shopapp/orders.py",
+        "reported_func": "assemble_order_items",
+        "justification": "The agent accurately identified the exact root cause mechanism, noting the improper key access of item['item_id'] leading to a KeyError in order assembly."
+      },
+      {
+        "bug_id": "BUG-07",
+        "file_correct": false,
+        "commit_correct": false,
+        "semantic_score": 0.8,
+        "reported_file": "shopapp/scenarios.py",
+        "reported_func": "Default channels",
+        "justification": "The agent correctly identified the core mechanism of mutable default arguments causing state retention across invocations, though it unnecessarily expanded the scope to class or module-level definitions."
+      },
+      {
+        "bug_id": "BUG-08",
+        "file_correct": false,
+        "commit_correct": false,
+        "semantic_score": 0.5,
+        "reported_file": "shopapp/scenarios.py",
+        "reported_func": "reproduce_bug_08",
+        "justification": "The agent identified the symptom of dropped records and a false success status, but missed the specific root cause mechanism of the overbroad try-except block masking the exception."
+      },
+      {
+        "bug_id": "BUG-09",
+        "file_correct": false,
+        "commit_correct": false,
+        "semantic_score": 1.0,
+        "reported_file": "shopapp/warehouse/cache.py",
+        "reported_func": "reserve_stock",
+        "justification": "The agent accurately identified that the warehouse cache layer is not being invalidated when stock units are reserved, perfectly matching the ground truth."
+      },
+      {
+        "bug_id": "BUG-10",
+        "file_correct": false,
+        "commit_correct": false,
+        "semantic_score": 1.0,
+        "reported_file": "shopapp/gateways.py",
+        "reported_func": "convert_to_cents",
+        "justification": "The agent accurately identified the exact root cause mechanism where dollars are divided by 100 instead of multiplied when converting to cents."
+      }
+    ]
+  },
+  "runs": [
+    {
+      "bug_id": "BUG-01",
+      "latency_sec": 7.68,
+      "steps_used": 1,
+      "tokens_used": 386,
+      "error": null,
+      "report": {
+        "summary": "A TypeError ('NoneType' object is not subscriptable) occurs when attempting to access preferences on a user dictionary that evaluates to None.",
+        "root_cause": "The function get_user_notification_preference retrieves a user object which is None (likely when the user ID is not found in the database or cache), but attempts to subscript it directly without checking if the user object exists first.",
+        "bug_type": "none_undefined_access",
+        "file": "shopapp/users.py",
+        "function": "get_user_notification_preference",
+        "line_start": 35,
+        "line_end": 40,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp/users.py:38",
+            "snippet": "return bool(user[\"preferences\"][channel])",
+            "why_relevant": "The traceback points directly to line 38 where subscripting `user[\"preferences\"]` fails because `user` is None."
+          },
+          {
+            "kind": "log",
+            "source": "shopapp/notifications.py:37",
+            "snippet": "if get_user_notification_preference(user_id, \"email\"):",
+            "why_relevant": "Shows the caller passing a user_id that results in a None return value from the user lookup."
+          }
+        ],
+        "suggested_fix": "Add a check to ensure the user object is not None before attempting to access its keys, e.g., if user is None: return False.",
+        "confidence": 1.0,
+        "confidence_reasoning": "The complete stack trace explicitly provides the exact file, function, line number, and error type, leaving no ambiguity about the root cause.",
+        "steps_taken": [
+          "Analyzed the provided stack trace and error message.",
+          "Identified the exception type (TypeError) and the exact operation causing it ('NoneType' object is not subscriptable).",
+          "Traced the execution flow from run_scenarios.py through shopapp/notifications.py to shopapp/users.py.",
+          "Pinpointed the exact line number and function responsible for the bug."
+        ],
+        "open_questions": [],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": true,
+        "function_correct": true,
+        "line_overlap": true,
+        "commit_correct": false,
+        "bug_type_correct": true,
+        "cause_semantic_score": 0.5,
+        "semantic_justification": "The agent identified a missing null check on an object leading to a TypeError, but wrongly targeted the user object being None rather than the preferences dictionary being None during dictionary indexing.",
+        "grounded": false,
+        "confidence": 1.0,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    },
+    {
+      "bug_id": "BUG-02",
+      "latency_sec": 50.8,
+      "steps_used": 1,
+      "tokens_used": 194,
+      "error": null,
+      "report": {
+        "summary": "A bulk discount calculation mismatch occurred where 25 items resulted in a discount of $30.00 instead of the expected $60.00 because the 20% tier was omitted.",
+        "root_cause": "The discount tier selection logic fails to apply or falls through to a lower percentage tier when evaluating quantity thresholds (such as 25 items), skipping the intended 20% discount bracket.",
+        "bug_type": "wrong_operator",
+        "file": "shopapp/discounts.py",
+        "function": "calculate_bulk_discount",
+        "line_start": 45,
+        "line_end": 65,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp.scenarios",
+            "snippet": "CalculationMismatch: Bulk discount for 25 items was $30.00, expected $60.00 (20% tier omitted)",
+            "why_relevant": "Explicitly states that the 20% tier was omitted for 25 items, cutting the discount in half."
+          }
+        ],
+        "suggested_fix": "Review the conditional statements or threshold boundaries in the bulk discount tier matching logic (e.g., using strict inequality '<' instead of '<=' or incorrect range bounds) to ensure the 20% tier is correctly matched for quantities like 25.",
+        "confidence": 0.8,
+        "confidence_reasoning": "The error message is extremely specific about the exact symptom (20% tier omitted, 25 items resulting in $30 instead of $60), allowing high confidence in the business logic failure domain even without repository access.",
+        "steps_taken": [
+          "Analyzed the provided error message and stack log snippet.",
+          "Identified the component (shopapp.scenarios, bulk discount calculation).",
+          "Deduced the failure mode as a boundary/tier omission bug in discount logic.",
+          "Formulated the likely file, function, and fix."
+        ],
+        "open_questions": [
+          "What are the exact threshold boundaries defined in the database or config for the bulk discount tiers?"
+        ],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": true,
+        "function_correct": true,
+        "line_overlap": false,
+        "commit_correct": false,
+        "bug_type_correct": false,
+        "cause_semantic_score": 0.5,
+        "semantic_justification": "The agent correctly identified the resulting symptom (skipping the 20% discount bracket for quantities like 25), but omitted the exact code-level mechanism (the off-by-one error in range(len(tiers) - 1)).",
+        "grounded": false,
+        "confidence": 0.8,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    },
+    {
+      "bug_id": "BUG-03",
+      "latency_sec": 29.0,
+      "steps_used": 1,
+      "tokens_used": 237,
+      "error": null,
+      "report": {
+        "summary": "An InsufficientStockError is thrown when attempting to reserve 5 units of product 'prod_101' when the available stock is also exactly 5. The error message explicitly states that the operator '>' rejected an exact match.",
+        "root_cause": "The inventory reservation check uses a strict greater-than operator (>) instead of a greater-than-or-equal operator (>=) when comparing the requested quantity against the available stock, causing exact boundary matches to be incorrectly rejected.",
+        "bug_type": "wrong_operator",
+        "file": "shopapp/scenarios.py",
+        "function": "reserve_stock",
+        "line_start": 40,
+        "line_end": 55,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp.scenarios",
+            "snippet": "InsufficientStockError: Unable to reserve 5 units of 'prod_101' when available stock is 5 (operator > rejected exact match)",
+            "why_relevant": "Explicitly names the incorrect operator '>' and the exact condition where available stock equals the requested quantity."
+          }
+        ],
+        "suggested_fix": "Change the comparison operator from '>' to '>=' in the stock sufficiency check within shopapp/scenarios.py.",
+        "confidence": 0.95,
+        "confidence_reasoning": "The error message explicitly points out the exact incorrect operator ('operator > rejected exact match'), making the root cause highly transparent and straightforward to diagnose.",
+        "steps_taken": [
+          "Analyzed the provided error message and stack trace.",
+          "Identified the specific module mentioned in the log (shopapp.scenarios).",
+          "Parsed the explicit hint regarding the incorrect operator ('>' vs '>=').",
+          "Formulated the root cause and suggested fix."
+        ],
+        "open_questions": [],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": false,
+        "function_correct": false,
+        "line_overlap": true,
+        "commit_correct": false,
+        "bug_type_correct": true,
+        "cause_semantic_score": 1.0,
+        "semantic_justification": "The agent accurately and precisely identified the flawed comparison operator and its exact impact on boundary conditions matching the ground truth.",
+        "grounded": false,
+        "confidence": 0.95,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    },
+    {
+      "bug_id": "BUG-04",
+      "latency_sec": 3.27,
+      "steps_used": 1,
+      "tokens_used": 313,
+      "error": null,
+      "report": {
+        "summary": "An AttributeError occurs when trying to apply a nonexistent coupon code because the function attempts to call '.get()' on a coupon object that evaluates to None.",
+        "root_cause": "The function apply_coupon_to_cart fetches a coupon using a given code, but fails to check whether the resulting coupon object is None before attempting to access its properties via the .get() method.",
+        "bug_type": "none_undefined_access",
+        "file": "shopapp/cart.py",
+        "function": "apply_coupon_to_cart",
+        "line_start": 50,
+        "line_end": 60,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp/cart.py:57",
+            "snippet": "if not coupon.get(\"is_active\"):\nAttributeError: 'NoneType' object has no attribute 'get'",
+            "why_relevant": "Directly indicates that the variable 'coupon' is None when the .get method is invoked on line 57."
+          }
+        ],
+        "suggested_fix": "Add a null check for the coupon before accessing its attributes, for example: if coupon is None or not coupon.get(\"is_active\"): raise ValueError(\"Invalid coupon\")",
+        "confidence": 1.0,
+        "confidence_reasoning": "The stack trace provides the exact file, function, line number, and error message, leaving no ambiguity about the root cause.",
+        "steps_taken": [
+          "Analyzed the provided stack trace and error message.",
+          "Identified the offending file as shopapp/cart.py and the function as apply_coupon_to_cart.",
+          "Pinpointed the line number and the exact reason for the AttributeError."
+        ],
+        "open_questions": [],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": true,
+        "function_correct": true,
+        "line_overlap": true,
+        "commit_correct": false,
+        "bug_type_correct": false,
+        "cause_semantic_score": 1.0,
+        "semantic_justification": "The agent accurately identified the exact root cause mechanism, noting that the coupon lookup returns None and the code fails to check for this before calling .get() on it.",
+        "grounded": false,
+        "confidence": 1.0,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    },
+    {
+      "bug_id": "BUG-05",
+      "latency_sec": 2.89,
+      "steps_used": 1,
+      "tokens_used": 343,
+      "error": null,
+      "report": {
+        "summary": "A PrecisionError occurs in the payment calculation because floating-point arithmetic introduces fractional cents (e.g., 99.213975) when computing taxes or discounts, violating payment rounding constraints.",
+        "root_cause": "The function performs floating-point calculations (such as multiplying by tax rates or percentages) without rounding the result to the nearest two decimal places before passing or returning the payment total.",
+        "bug_type": "precision_error",
+        "file": "shopapp/payments.py",
+        "function": "calculate_payment_breakdown",
+        "line_start": 25,
+        "line_end": 35,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp/payments.py:30",
+            "snippet": "raise ValueError(f\"PrecisionError: Payment total contains fractional cents: {total}\")",
+            "why_relevant": "Explicitly points to the check failing when the payment total contains fractional cents beyond two decimal places."
+          }
+        ],
+        "suggested_fix": "Modify the payment breakdown calculation in shopapp/payments.py to round the total to 2 decimal places using round(total, 2) or the decimal module before validation or return.",
+        "confidence": 0.95,
+        "confidence_reasoning": "The stack trace directly points to the exact file, function, and line where the precision check fails and raises an exception due to floating-point representation.",
+        "steps_taken": [
+          "Analyzed traceback and error log",
+          "Identified offending file and function",
+          "Pinpointed root cause as floating-point precision issue",
+          "Formulated suggested fix using rounding"
+        ],
+        "open_questions": [],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": true,
+        "function_correct": true,
+        "line_overlap": true,
+        "commit_correct": false,
+        "bug_type_correct": false,
+        "cause_semantic_score": 1.0,
+        "semantic_justification": "The agent accurately identified floating-point arithmetic without proper decimal rounding on fractional amounts as the exact root cause.",
+        "grounded": false,
+        "confidence": 0.95,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    },
+    {
+      "bug_id": "BUG-06",
+      "latency_sec": 7.2,
+      "steps_used": 1,
+      "tokens_used": 326,
+      "error": null,
+      "report": {
+        "summary": "A KeyError 'item_id' occurs when placing an order because assemble_order_items expects a dictionary key 'item_id', but the cart items dictionary or object uses a different key name such as 'product_id' or 'id'.",
+        "root_cause": "The function assemble_order_items attempts to access item['item_id'], but the cart items are structured with a different key name, leading to a KeyError.",
+        "bug_type": "none_undefined_access",
+        "file": "shopapp/orders.py",
+        "function": "assemble_order_items",
+        "line_start": 18,
+        "line_end": 22,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp/orders.py:20",
+            "snippet": "\"product_id\": item[\"item_id\"],\n                  ~~~~^^^^^^^^^^^\nKeyError: 'item_id'",
+            "why_relevant": "Directly points to the exact file, line, and expression causing the KeyError."
+          }
+        ],
+        "suggested_fix": "Change item['item_id'] to match the actual key used in cart items (e.g., item['product_id'] or item['id']), or ensure the cart serialization populates 'item_id' correctly.",
+        "confidence": 0.95,
+        "confidence_reasoning": "The stack trace clearly identifies the exact file, function, line number, and offending dictionary key access causing the KeyError.",
+        "steps_taken": [
+          "Analyzed the provided error message and stack trace.",
+          "Identified the exception type (KeyError) and missing key ('item_id').",
+          "Located the offending file (shopapp/orders.py) and function (assemble_order_items).",
+          "Formulated the root cause and suggested fix based on standard cart-item schema mismatches."
+        ],
+        "open_questions": [],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": true,
+        "function_correct": true,
+        "line_overlap": true,
+        "commit_correct": false,
+        "bug_type_correct": false,
+        "cause_semantic_score": 1.0,
+        "semantic_justification": "The agent accurately identified the exact root cause mechanism, noting the improper key access of item['item_id'] leading to a KeyError in order assembly.",
+        "grounded": false,
+        "confidence": 0.95,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    },
+    {
+      "bug_id": "BUG-07",
+      "latency_sec": 3.55,
+      "steps_used": 1,
+      "tokens_used": 234,
+      "error": null,
+      "report": {
+        "summary": "A CrossSessionLeak occurs where user session state (specifically audit channel lists like 'user_audit_usr_001', 'user_audit_usr_002') leaks into subsequent user sessions because a default or class-level/module-level mutable collection is reused across requests.",
+        "root_cause": "Using mutable default arguments or defining a list/dictionary at the class/module scope for user-specific state instead of initializing it fresh within the instance or request scope.",
+        "bug_type": "state_leak",
+        "file": "shopapp/scenarios.py",
+        "function": "Default channels",
+        "line_start": 1,
+        "line_end": 50,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp.scenarios",
+            "snippet": "CrossSessionLeak: Default channels list polluted with previous user session state: ['user_audit_usr_001', 'user_audit_usr_002']",
+            "why_relevant": "Explicitly names the bug as CrossSessionLeak and shows accumulated audit users from prior sessions."
+          }
+        ],
+        "suggested_fix": "Ensure that any lists or collections tracking user session channels or states are initialized locally within the user session constructor or request handler (e.g., using `self.channels = []` inside `__init__` rather than a default argument like `channels=[]` or module-level variable).",
+        "confidence": 0.8,
+        "confidence_reasoning": "The error message explicitly names the bug category (CrossSessionLeak) and the exact symptom (Default channels list polluted with previous user session state), which strongly points to mutable default state sharing across requests.",
+        "steps_taken": [
+          "Analyzed the provided error log string.",
+          "Identified the module 'shopapp.scenarios' from the log.",
+          "Mapped the symptom 'CrossSessionLeak' and list pollution to the common anti-pattern of mutable default arguments or shared class-level state."
+        ],
+        "open_questions": [],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": false,
+        "function_correct": false,
+        "line_overlap": true,
+        "commit_correct": false,
+        "bug_type_correct": false,
+        "cause_semantic_score": 0.8,
+        "semantic_justification": "The agent correctly identified the core mechanism of mutable default arguments causing state retention across invocations, though it unnecessarily expanded the scope to class or module-level definitions.",
+        "grounded": false,
+        "confidence": 0.8,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    },
+    {
+      "bug_id": "BUG-08",
+      "latency_sec": 11.77,
+      "steps_used": 1,
+      "tokens_used": 192,
+      "error": null,
+      "report": {
+        "summary": "A test scenario for BUG-08 failed with SilentDataLoss: Database save returned True for a corrupted payload, but the record was dropped.",
+        "root_cause": "The ORM/database save operation swallows or fails to handle a corrupted payload correctly during the write cycle, returning a success status (True) while discarding the underlying record without raising an exception.",
+        "bug_type": "wrong_operator",
+        "file": "shopapp/scenarios.py",
+        "function": "reproduce_bug_08",
+        "line_start": 1,
+        "line_end": 50,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp.scenarios",
+            "snippet": "2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-08 reproduced: SilentDataLoss: Database save returned True for corrupted payload, but record was dropped",
+            "why_relevant": "Directly indicates the module and error condition where silent data loss occurs."
+          }
+        ],
+        "suggested_fix": "Ensure that database save methods validate payload integrity before committing and explicitly raise an exception when a record is dropped instead of returning a false-positive success boolean.",
+        "confidence": 0.5,
+        "confidence_reasoning": "The exact source file and function name beyond the scenario module cannot be verified without codebase access, but the symptom clearly points to a database handling layer flaw.",
+        "steps_taken": [
+          "Analyzed the provided error message and test failure output.",
+          "Identified the module namespace 'shopapp.scenarios' from the log.",
+          "Mapped the symptom 'SilentDataLoss' to potential ORM persistence issues."
+        ],
+        "open_questions": [
+          "Which specific model or database adapter is handling the payload?",
+          "What exact payload corruption triggers the drop behavior?"
+        ],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": false,
+        "function_correct": false,
+        "line_overlap": false,
+        "commit_correct": false,
+        "bug_type_correct": false,
+        "cause_semantic_score": 0.5,
+        "semantic_justification": "The agent identified the symptom of dropped records and a false success status, but missed the specific root cause mechanism of the overbroad try-except block masking the exception.",
+        "grounded": false,
+        "confidence": 0.5,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    },
+    {
+      "bug_id": "BUG-09",
+      "latency_sec": 10.74,
+      "steps_used": 1,
+      "tokens_used": 181,
+      "error": null,
+      "report": {
+        "summary": "Warehouse cache returned stale stock count after a reservation, failing consistency checks.",
+        "root_cause": "When reserving stock units, the application updates the primary database store but fails to invalidate or update the concurrent warehouse cache layer, leading to a stale count being returned.",
+        "bug_type": "cache_inconsistency",
+        "file": "shopapp/warehouse/cache.py",
+        "function": "reserve_stock",
+        "line_start": 45,
+        "line_end": 72,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp.scenarios",
+            "snippet": "Warehouse cache returned stale count 50 after reserving 20 units (actual stock: 30)",
+            "why_relevant": "Demonstrates a desynchronization between the expected stock level after reservation and the cached stock level returned."
+          }
+        ],
+        "suggested_fix": "Ensure that the cache is properly invalidated or updated synchronously inside the stock reservation transaction block.",
+        "confidence": 0.8,
+        "confidence_reasoning": "The error message explicitly points to a StaleCacheAnomaly during a warehouse stock reservation scenario, clearly identifying a cache synchronization bug.",
+        "steps_taken": [
+          "Analyzed error traceback and test scenario failure message",
+          "Identified cache anomaly indicators and mismatch between cached and actual stock values",
+          "Formulated root cause hypothesis regarding cache invalidation"
+        ],
+        "open_questions": [
+          "Is the cache invalidation asynchronous or completely omitted in the current implementation?"
+        ],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": false,
+        "function_correct": false,
+        "line_overlap": true,
+        "commit_correct": false,
+        "bug_type_correct": false,
+        "cause_semantic_score": 1.0,
+        "semantic_justification": "The agent accurately identified that the warehouse cache layer is not being invalidated when stock units are reserved, perfectly matching the ground truth.",
+        "grounded": false,
+        "confidence": 0.8,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    },
+    {
+      "bug_id": "BUG-10",
+      "latency_sec": 12.41,
+      "steps_used": 1,
+      "tokens_used": 199,
+      "error": null,
+      "report": {
+        "summary": "A monetary conversion error where $49.50 was converted to 0 cents instead of 4950 cents due to integer division or incorrect decimal rounding.",
+        "root_cause": "When converting a floating-point dollar amount (49.50) to integer cents, the code likely performed integer division (e.g., dividing by 100 instead of multiplying by 100, or casting an intermediate float result improperly where division truncates the decimal before multiplication).",
+        "bug_type": "wrong_operator",
+        "file": "shopapp/gateways.py",
+        "function": "convert_to_cents",
+        "line_start": 10,
+        "line_end": 25,
+        "introducing_commit": null,
+        "evidence": [
+          {
+            "kind": "log",
+            "source": "shopapp.scenarios",
+            "snippet": "GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)",
+            "why_relevant": "Demonstrates that multiplying or converting $49.50 resulted in 0 cents, indicating an arithmetic error such as integer division or incorrect scaling factor."
+          }
+        ],
+        "suggested_fix": "Ensure that the dollar amount is multiplied by 100 as an integer or using Decimal arithmetic to avoid truncation, e.g., int(round(amount * 100)).",
+        "confidence": 0.8,
+        "confidence_reasoning": "The symptom explicitly points to a currency conversion bug where $49.50 becomes 0 cents. While the exact file path and function names are standard conventions for this type of problem in the shopapp module, the exact line numbers are estimates.",
+        "steps_taken": [
+          "Analyzed error message and stack trace indicating a currency conversion mismatch ($49.50 to 0 cents).",
+          "Identified module name shopapp.scenarios and gateway rejection context.",
+          "Deduced that multiplication by 100 was likely replaced by division or incorrectly truncated.",
+          "Formulated suggested fix and estimated file/function locations based on common e-commerce architecture patterns."
+        ],
+        "open_questions": [
+          "Is the conversion logic using floats directly instead of Python's decimal module?",
+          "Does the exact codebase use a helper utility for currency conversion?"
+        ],
+        "grounded": false,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      },
+      "scores": {
+        "file_correct": false,
+        "function_correct": false,
+        "line_overlap": true,
+        "commit_correct": false,
+        "bug_type_correct": false,
+        "cause_semantic_score": 1.0,
+        "semantic_justification": "The agent accurately identified the exact root cause mechanism where dollars are divided by 100 instead of multiplied when converting to cents.",
+        "grounded": false,
+        "confidence": 0.8,
+        "validation_notes": [
+          "Baseline prediction generated purely without tool or repository grounding."
+        ]
+      }
+    }
+  ]
+}

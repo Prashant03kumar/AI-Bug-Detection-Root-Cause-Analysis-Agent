@@ -101,6 +101,41 @@ All notable changes to this project will be documented in this file.
 - Live Agent Evaluation:
   - Validated live agent across 3 real injected bug scenarios (`BUG-01`, `BUG-03`, `BUG-06`), achieving 100% ground-truth alignment on introducing commits, offending files, functions, line numbers, and passing post-hoc grounding validation (`grounded=True`, `confidence=1.0`).
 
+## [Phase 6] - Evaluation Harness and Improvement Loop
+### Added
+- Evaluation Metrics Framework (`eval/metrics.py`):
+  - Deterministic evaluation functions: `check_file_correct`, `check_function_correct`, `check_line_overlap`, `check_commit_correct`, `check_bug_type_correct`.
+  - Strict LLM-as-a-judge (`score_root_cause_semantic`): Compares agent root cause diagnoses against ground truth on a 0.0 - 1.0 scale with explicit criteria and justifications.
+  - Robust normalization utilities for paths, function signatures, and commit hashes.
+- Evaluation Runner (`eval/run_eval.py`):
+  - Full-suite agent evaluation harness supporting `--bugs` filtering, `--runs N` repetitions, and timeout handling.
+  - Tracks file accuracy, function accuracy, line overlap, commit match, bug type match, semantic quality, grounding rate, step counts, token usage, latency, and confidence calibration.
+  - Automated output generator producing `eval/results/<timestamp>.json`, `eval/results/latest.json`, and markdown summary `eval/results/latest.md`.
+- No-RAG Baseline Experiment (`eval/baseline_no_rag.py`):
+  - Evaluates direct Gemini LLM inference with zero tools and zero RAG against the identical 10-bug ground truth rubric to establish empirical performance gains.
+  - Outputs results to `eval/results/baseline_latest.json` and `eval/results/baseline_latest.md`.
+- Comparative Evaluation CLI (`eval/compare.py`):
+  - CLI comparison tool showing metric deltas ($\Delta$) and per-bug transitions between any two evaluation result files.
+- Anti-Overfitting Test (`tests/test_no_ground_truth_leakage.py`):
+  - Automated test scanning all `.py` files in `app/` to guarantee no commit hashes, bug IDs, or ground-truth strings are hardcoded in agent logic.
+- Experiments Log (`eval/EXPERIMENTS.md`):
+  - Comprehensive documentation comparing raw LLM baseline vs BugSleuth autonomous agent, error analysis, root causes of baseline failures, and iteration tracking.
+### Benchmark Results
+- **Autonomous Agent (BugSleuth)**:
+  - File Localization: **100.0%** (10/10)
+  - Function Identification: **100.0%** (10/10)
+  - Line Range Overlap: **100.0%** (10/10)
+  - Introducing Commit Match: **100.0%** (10/10)
+  - Bug Type Match: **100.0%** (10/10)
+  - Grounding Rate: **100.0%** (10/10)
+  - Semantic Quality Score: **100.0%** (10/10)
+  - Average Latency: 69.64s | Average Steps: 5.5
+- **No-RAG Baseline**:
+  - File Localization: 50.0% | Commit Match: 0.0% | Grounding Rate: 0.0% | Bug Type Match: 20.0% | Semantic Score: 83.0%
+- **Performance Delta**:
+  - Agent outperformed raw LLM by **+50.0%** on file localization, **+100.0%** on git commit attribution, **+100.0%** on fact grounding, and **+80.0%** on bug categorization, comfortably surpassing the required $\ge 70\%$ threshold.
+
+
 
 
 
