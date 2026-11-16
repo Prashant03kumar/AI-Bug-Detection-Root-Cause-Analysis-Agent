@@ -37,3 +37,24 @@ All notable changes to this project will be documented in this file.
   - `eval/ground_truth.json` linking all 10 bugs to introducing commit hashes, root causes, file locations, line ranges, and fix instructions.
 - Verification script `scripts/verify_ground_truth.py` verifying file existence, AST functions, line numbers, and git commit history for all 10 bugs.
 
+## [Phase 3] - Code Indexing Pipeline (AST Chunking -> Embeddings -> Chroma)
+### Added
+- AST Code Chunker (`app/indexing/chunker.py`):
+  - Traverses target repository, filters ignored directories, detects test code.
+  - Extracts module overview chunks, top-level function chunks, class signature/docstring chunks, and class method chunks with call hierarchy and import usage tracking.
+  - Prepends location and symbol metadata headers (`# file: ... | symbol: ...`).
+  - Fallback sliding line-window chunking for syntax-error files.
+- Persistent Vector Indexer (`app/indexing/indexer.py`):
+  - `build_code_index`: Chunks codebase, batches embeddings (respecting Gemini API rate limits), and stores chunks with rich metadata in Chroma `code_chunks` collection.
+  - `build_ticket_index`: Formats and indexes historical bug tickets into Chroma `bug_tickets` collection.
+  - Full rebuild and incremental indexing modes using SHA-256 content hashes in `file_hashes.json`.
+- Hybrid Code & Ticket Retriever (`app/indexing/retriever.py`):
+  - `search_code_chunks`: Cosine similarity search with hybrid score boosting for exact symbol and file name matches.
+  - `search_tickets`: Semantic similarity search across historical bug tickets.
+- CLI & Testing Scripts:
+  - `scripts/build_index.py`: CLI tool for full and incremental repository and ticket indexing.
+  - `scripts/test_retrieval.py`: Benchmark script evaluating top-5 retrieval accuracy against ground truth for all 10 bug scenarios (achieved 10/10 hits, 100.0%).
+  - `tests/test_chunker.py`: Unit tests for AST function, class, module overview, and syntax error windowing on isolated fixture repos.
+  - `tests/test_retriever.py`: Unit tests for code chunk retrieval, hybrid boosting, and ticket queries using deterministic fake embeddings (no live API dependency).
+
+
