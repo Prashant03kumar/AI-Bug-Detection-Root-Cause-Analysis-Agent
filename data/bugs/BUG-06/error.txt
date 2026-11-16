@@ -1,4 +1,4 @@
-2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-06 reproduced: 'item_id'
+2026-11-16 22:35:12 [ERROR] [shopapp.scenarios] BUG-06 reproduced: 'item_id'
 Traceback (most recent call last):
   File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 108, in scenario_bug_06
     order = place_order("usr_001", cart["id"])

@@ -1,4 +1,4 @@
-2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-02 reproduced: CalculationMismatch: Bulk discount for 25 items was $30.00, expected $60.00 (20% tier omitted)
+2026-11-16 22:35:11 [ERROR] [shopapp.scenarios] BUG-02 reproduced: CalculationMismatch: Bulk discount for 25 items was $30.00, expected $60.00 (20% tier omitted)
 [FAIL] BUG-02: CalculationMismatch: Bulk discount for 25 items was $30.00, expected $60.00 (20% tier omitted)
 
 ============================================================

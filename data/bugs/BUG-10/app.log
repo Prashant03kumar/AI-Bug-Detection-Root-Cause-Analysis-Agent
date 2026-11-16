@@ -4,8 +4,8 @@ Running 1 scenario(s) on demo_repo at HEAD
 ============================================================
 
 --> Testing BUG-10 ...
-2026-11-16 19:41:04 [INFO] [shopapp.scenarios] Executing Scenario BUG-10: Formatting $49.50 charge for gateway payload...
-2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-10 reproduced: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)
+2026-11-16 22:35:12 [INFO] [shopapp.scenarios] Executing Scenario BUG-10: Formatting $49.50 charge for gateway payload...
+2026-11-16 22:35:12 [ERROR] [shopapp.scenarios] BUG-10 reproduced: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)
 [FAIL] BUG-10: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)
 
 ============================================================

@@ -1,4 +1,4 @@
-2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-10 reproduced: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)
+2026-11-16 22:35:12 [ERROR] [shopapp.scenarios] BUG-10 reproduced: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)
 [FAIL] BUG-10: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)
 
 ============================================================

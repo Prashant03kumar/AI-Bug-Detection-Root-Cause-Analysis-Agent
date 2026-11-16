@@ -80,6 +80,14 @@ class RootCauseReport(BaseModel):
         default_factory=list,
         description="Automated validation findings",
     )
+    fix_verified: Optional[bool] = Field(
+        default=None,
+        description="Whether the suggested fix was verified in an isolated sandbox clone",
+    )
+    fix_verification_output: Optional[str] = Field(
+        default=None,
+        description="Execution output from verifying the suggested fix patch",
+    )
 
 
 class CodeChunk(BaseModel):

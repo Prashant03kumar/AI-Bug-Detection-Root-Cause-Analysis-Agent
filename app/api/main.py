@@ -14,8 +14,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 
+from app.agent.fix_verifier import verify_fix_in_temp_repo
 from app.agent.graph import investigate_bug, stream_investigation
 from app.api.models import (
+    CloneRepoRequest,
+    CloneRepoResponse,
     HealthResponse,
     IndexStatusResponse,
     InvestigateOptions,
@@ -23,6 +26,8 @@ from app.api.models import (
     RebuildIndexResponse,
     SampleBugItem,
     SampleBugsResponse,
+    VerifyFixRequest,
+    VerifyFixResponse,
 )
 from app.config import Settings, get_settings
 from app.indexing.indexer import (
@@ -32,6 +37,7 @@ from app.indexing.indexer import (
     build_ticket_index,
     get_chroma_client,
 )
+from app.indexing.repo_loader import clone_github_repo
 from app.logging_setup import get_logger
 from app.models import RootCauseReport
 
@@ -387,3 +393,53 @@ def stream_investigate_endpoint(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@app.post("/verify_fix", response_model=VerifyFixResponse)
+async def verify_fix_endpoint(request: VerifyFixRequest) -> VerifyFixResponse:
+    """Verify a suggested unified diff patch in an isolated temporary clone."""
+    settings = get_settings()
+    target_repo = request.repo_path or settings.target_repo_path
+
+    try:
+        result = await asyncio.to_thread(
+            verify_fix_in_temp_repo,
+            target_repo,
+            request.patch,
+            bug_hint=request.bug_hint,
+        )
+        return VerifyFixResponse(
+            patch_applied=result.patch_applied,
+            fix_verified=result.fix_verified,
+            test_output=result.test_output,
+            execution_time_seconds=result.execution_time_seconds,
+            error_message=result.error_message,
+        )
+    except Exception as exc:
+        logger.error("Fix verification failed: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Auto-fix verification failed: {str(exc)}",
+        )
+
+
+@app.post("/repo/clone", response_model=CloneRepoResponse)
+async def clone_repo_endpoint(request: CloneRepoRequest) -> CloneRepoResponse:
+    """Safely clone a remote GitHub repository into the local workspace."""
+    try:
+        dest_path = await asyncio.to_thread(
+            clone_github_repo,
+            request.repo_url,
+            workspace_dir=request.workspace_dir or "./workspace",
+        )
+        return CloneRepoResponse(
+            status="success",
+            cloned_path=str(dest_path),
+            message=f"Repository cloned successfully into {dest_path}",
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except Exception as exc:
+        logger.error("Clone failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+

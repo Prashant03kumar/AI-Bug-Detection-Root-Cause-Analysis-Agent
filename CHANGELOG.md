@@ -157,6 +157,38 @@ All notable changes to this project will be documented in this file.
   - `scripts/verify_phase7.py`: Comprehensive verification script testing `/health`, `/bugs`, `/investigate/stream`, `/investigate`, and Streamlit headless startup.
   - `tests/test_api.py`: 8 FastAPI TestClient tests covering all endpoints, error handling, input validation, and rate limiter enforcement.
 
+## [Phase 8] - Hardening, Auto-Fix Verification, Docker, and Production Documentation
+### Added
+- Auto-Fix Sandbox Verification (`app/agent/fix_verifier.py`):
+  - `extract_diff_patch`: Extracts and normalizes unified-diff patches from suggested fix descriptions.
+  - `verify_fix_in_temp_repo`: Creates an isolated temporary clone of the target codebase, applies the patch via `git apply` with whitespace tolerance, executes test suites / scenario runners (`run_scenarios.py`), and validates whether defects are resolved without introducing regressions.
+  - Automatically embedded in `investigate_bug` and `stream_investigation`, populating `fix_verified` and `fix_verification_output` on `RootCauseReport`.
+  - Verified working on real injected scenarios (`BUG-01` and `BUG-03`).
+  - Interactive "Verified fix" badge (`✅ VERIFIED (PASS)`) and sandbox test log viewer in Streamlit UI.
+- User-Supplied Repository Ingestion & Large Repo Safety:
+  - `app/indexing/repo_loader.py`: Safe shallow cloning (`git clone --depth=1`) with URL validation against command injection, path sanitization, and directory validation.
+  - Large repository protection in `app/indexing/chunker.py`: File-size ceiling (250 KB / 10,000 lines) skipping bloated artifacts, and expanded directory ignore sets (`node_modules`, `site-packages`, build artifacts).
+  - FastAPI endpoints: `POST /verify_fix` for on-demand patch testing and `POST /repo/clone` for remote repo ingestion.
+  - UI sidebar expander enabling one-click remote GitHub repository cloning and automatic re-indexing.
+- Observability & Immutable Run Tracking:
+  - Structured JSON logging: `JsonLogFormatter` in `app/logging_setup.py` format-compliant with log aggregators (Datadog, CloudWatch) enabled via `LOG_FORMAT=json`.
+  - Per-investigation audit trails: `app/agent/run_logger.py` saving complete run records to `runs/<timestamp>_<run_id>.json` (inputs, tool calls, token usage, latency, reports, and verification results).
+  - Native LangSmith tracing integration activated seamlessly via `LANGCHAIN_TRACING_V2` and `LANGSMITH_API_KEY`.
+- Reliability & Performance Safeguards:
+  - In-run tool execution caching (`_TOOL_EXECUTION_CACHE`): Eliminates duplicate tool executions and reduces latency / token consumption.
+  - Graceful degradation: Fallback synthesis on rate-limit exhaustion preserving confidence calibration.
+- Docker Containerization:
+  - `Dockerfile` using `python:3.11-slim` with system git and curl installations.
+  - `docker-compose.yml` orchestrating unified `api` (:8000) and `ui` (:8501) services with named volume mounts for `chroma_db`, `data`, `runs`, and `workspace`.
+  - `.dockerignore` excluding caches, logs, and virtual environments.
+- Production Documentation:
+  - `README.md`: Comprehensive documentation featuring what/why, Mermaid architecture flowcharts, step-by-step setup (Windows & macOS/Linux), API/UI quick start, benchmark evaluation results table, auto-fix verification, limitations, and future roadmap.
+  - `docs/ARCHITECTURE.md`: In-depth architectural blueprint covering AST chunking, LangGraph state machine, tool sandboxing, post-hoc grounding, and sandbox patch verification.
+- Final QA & Simulation:
+  - 40 passing unit and integration tests across all modules.
+  - Fresh-clone simulation script (`scripts/test_fresh_clone_simulation.py`) confirming end-to-end setup and investigation execution in a pristine isolated environment.
+
+
 
 
 

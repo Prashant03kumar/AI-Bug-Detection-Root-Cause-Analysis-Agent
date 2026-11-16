@@ -175,3 +175,36 @@ def test_rate_limiting_enforcement():
         assert "Rate limit exceeded" in blocked_res.json()["detail"]
     finally:
         rate_limiter.max_requests = original_max
+
+
+def test_verify_fix_endpoint():
+    """Verify POST /verify_fix delegates to verify_fix_in_temp_repo."""
+    from app.agent.fix_verifier import FixVerificationResult
+
+    mock_res = FixVerificationResult(
+        patch_applied=True,
+        fix_verified=True,
+        test_output="All tests passed successfully.",
+        command_executed="pytest tests",
+        execution_time_seconds=0.45,
+    )
+
+    with patch("app.api.main.verify_fix_in_temp_repo", return_value=mock_res):
+        payload = {
+            "patch": "--- a/mock.py\n+++ b/mock.py\n@@ -1,1 +1,1 @@\n-old\n+new",
+            "repo_path": "./demo_repo",
+        }
+        res = client.post("/verify_fix", json=payload)
+        assert res.status_code == 200
+        data = res.json()
+        assert data["patch_applied"] is True
+        assert data["fix_verified"] is True
+        assert "All tests passed" in data["test_output"]
+
+
+def test_clone_repo_endpoint_validation():
+    """Verify POST /repo/clone validates repo URLs."""
+    res = client.post("/repo/clone", json={"repo_url": "invalid-url"})
+    assert res.status_code == 400
+    assert "detail" in res.json()
+

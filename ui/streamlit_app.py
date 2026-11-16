@@ -230,6 +230,26 @@ with st.sidebar:
                 st.rerun()
             else:
                 st.warning(res.get("message", "Could not start rebuild."))
+
+        with st.expander("🌐 Clone GitHub Repo", expanded=False):
+            repo_clone_url = st.text_input("Git Clone URL", placeholder="https://github.com/owner/repo")
+            if st.button("Clone & Index", use_container_width=True):
+                if repo_clone_url.strip():
+                    with st.spinner("Cloning repository into ./workspace/..."):
+                        try:
+                            c_res = _session.post(
+                                f"{api_url}/repo/clone",
+                                json={"repo_url": repo_clone_url.strip()},
+                                timeout=60,
+                            )
+                            if c_res.status_code == 200:
+                                st.success(f"Cloned: {c_res.json().get('cloned_path')}")
+                                trigger_index_rebuild(api_url)
+                                st.rerun()
+                            else:
+                                st.error(c_res.json().get("detail", "Clone failed."))
+                        except Exception as c_err:
+                            st.error(f"Clone error: {c_err}")
     else:
         st.caption("Index information unavailable.")
 
@@ -417,7 +437,7 @@ if report:
     st.info(f"**Diagnostic Summary:** {report.get('summary')}")
 
     # Metrics Row
-    m_col1, m_col2, m_col3, m_col4, m_col5 = st.columns(5)
+    m_col1, m_col2, m_col3, m_col4, m_col5, m_col6 = st.columns(6)
 
     confidence_val = float(report.get("confidence", 0.0))
     m_col1.metric("Confidence", f"{confidence_val * 100:.0f}%")
@@ -434,11 +454,21 @@ if report:
 
     is_grounded = bool(report.get("grounded", False))
     with m_col5:
-        st.write("**Validation Badge**")
+        st.write("**AST Grounding**")
         if is_grounded:
             st.markdown('<span class="badge-grounded">✅ GROUNDED (PASS)</span>', unsafe_allow_html=True)
         else:
             st.markdown('<span class="badge-ungrounded">⚠️ UNVERIFIED</span>', unsafe_allow_html=True)
+
+    fix_verified = report.get("fix_verified")
+    with m_col6:
+        st.write("**Verified Fix**")
+        if fix_verified is True:
+            st.markdown('<span class="badge-grounded">✅ VERIFIED (PASS)</span>', unsafe_allow_html=True)
+        elif fix_verified is False:
+            st.markdown('<span class="badge-ungrounded">❌ UNVERIFIED</span>', unsafe_allow_html=True)
+        else:
+            st.markdown('<span style="color: gray; font-size: 0.85rem;">ℹ️ NO PATCH</span>', unsafe_allow_html=True)
 
     # Detailed Tabs
     tab_diag, tab_fix, tab_evid, tab_trail = st.tabs(
@@ -463,6 +493,21 @@ if report:
         st.markdown(report.get("suggested_fix", "No fix provided."))
 
         # If fix contains a unified diff codeblock, render syntax-highlighted diff
+        fix_text = report.get("suggested_fix", "")
+        if "```diff" in fix_text:
+            try:
+                diff_part = fix_text.split("```diff")[1].split("```")[0].strip()
+                st.markdown("##### Unified Diff Patch")
+                st.code(diff_part, language="diff")
+            except Exception:
+                pass
+        elif "--- " in fix_text and "+++ " in fix_text:
+            st.markdown("##### Unified Diff Patch")
+            st.code(fix_text, language="diff")
+
+        if report.get("fix_verification_output"):
+            with st.expander("🧪 Auto-Fix Sandbox Execution Output", expanded=False):
+                st.code(report.get("fix_verification_output"), language="text")
         fix_text = report.get("suggested_fix", "")
         if "```diff" in fix_text:
             try:

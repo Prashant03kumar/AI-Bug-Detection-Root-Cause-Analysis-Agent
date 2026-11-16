@@ -16,6 +16,8 @@ IGNORED_DIRS: Set[str] = {
     ".venv",
     "venv",
     "env",
+    "node_modules",
+    "site-packages",
     "__pycache__",
     ".pytest_cache",
     ".mypy_cache",
@@ -26,6 +28,9 @@ IGNORED_DIRS: Set[str] = {
     ".idea",
     ".vscode",
 }
+
+MAX_FILE_SIZE_BYTES = 250_000  # 250 KB safety cap for large repos
+MAX_FILE_LINES = 10_000
 
 
 def is_test_file(rel_path: str) -> bool:
@@ -152,6 +157,29 @@ def chunk_file(file_path: Path, repo_root: Path) -> List[CodeChunk]:
 
     source_lines = source_content.splitlines(keepends=True)
     total_lines = len(source_lines)
+    file_size = file_path.stat().st_size
+
+    if file_size > MAX_FILE_SIZE_BYTES or total_lines > MAX_FILE_LINES:
+        logger.warning(
+            "Skipping detailed AST chunking for oversized file %s (%d bytes, %d lines)",
+            rel_path_str,
+            file_size,
+            total_lines,
+        )
+        return [
+            CodeChunk(
+                id=make_chunk_id(rel_path_str, "oversized_file", 1),
+                text=f"# file: {rel_path_str} | symbol: oversized_file\n[Oversized source file {file_size} bytes, {total_lines} lines - detailed AST skipped]",
+                file_path=rel_path_str,
+                symbol_name="oversized_file",
+                kind="module",
+                start_line=1,
+                end_line=min(total_lines, 50),
+                is_test=is_test,
+                imports_used=[],
+                calls_made=[],
+            )
+        ]
 
     try:
         tree = ast.parse(source_content, filename=str(file_path))

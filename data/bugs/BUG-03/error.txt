@@ -1,4 +1,4 @@
-2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-03 reproduced: InsufficientStockError: Unable to reserve 5 units of 'prod_101' when available stock is 5 (operator > rejected exact match)
+2026-11-16 22:35:11 [ERROR] [shopapp.scenarios] BUG-03 reproduced: InsufficientStockError: Unable to reserve 5 units of 'prod_101' when available stock is 5 (operator > rejected exact match)
 [FAIL] BUG-03: InsufficientStockError: Unable to reserve 5 units of 'prod_101' when available stock is 5 (operator > rejected exact match)
 
 ============================================================

@@ -1,4 +1,4 @@
-2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-08 reproduced: SilentDataLoss: Database save returned True for corrupted payload, but record was dropped
+2026-11-16 22:35:12 [ERROR] [shopapp.scenarios] BUG-08 reproduced: SilentDataLoss: Database save returned True for corrupted payload, but record was dropped
 [FAIL] BUG-08: SilentDataLoss: Database save returned True for corrupted payload, but record was dropped
 
 ============================================================

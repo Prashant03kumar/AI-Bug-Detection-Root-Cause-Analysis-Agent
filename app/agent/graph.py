@@ -1,17 +1,22 @@
 """LangGraph investigation agent with tool execution, verification, and structured reporting."""
 
 import json
+import os
+import re
+import time
 from typing import Any, Dict, Generator, List, Literal, Optional
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.graph import END, START, StateGraph
 
+from app.agent.fix_verifier import extract_diff_patch, verify_fix_in_temp_repo
 from app.agent.prompts import (
     HYPOTHESIS_PROMPT,
     INVESTIGATION_SYSTEM_PROMPT,
     REPORT_PROMPT,
     VERIFICATION_PROMPT,
 )
+from app.agent.run_logger import save_investigation_run
 from app.agent.state import AgentState
 from app.agent.validate import validate_report
 from app.config import Settings, get_settings
@@ -24,6 +29,7 @@ from app.tools.error_parser import parse_error_impl
 logger = get_logger("agent.graph")
 
 TOOLS_BY_NAME = {t.name: t for t in ALL_TOOLS}
+_TOOL_EXECUTION_CACHE: Dict[str, str] = {}
 
 
 def record_evidence(tool_name: str, args: Dict[str, Any], result: str, state_evidence: List[Evidence]) -> None:
@@ -163,7 +169,7 @@ def node_tools(state: AgentState) -> Dict[str, Any]:
         t_args = tc.get("args", {})
         t_id = tc.get("id") or f"call_{t_name}"
 
-        # Loop / Duplicate Call Detection
+        # Loop / Duplicate Call Detection and in-run caching
         call_sig = f"{t_name}:{json.dumps(t_args, sort_keys=True)}"
         call_count = call_history.count(call_sig)
 
@@ -174,6 +180,10 @@ def node_tools(state: AgentState) -> Dict[str, Any]:
                 f"Loop Warning: Tool '{t_name}' was already executed twice with identical arguments {t_args}. "
                 f"Please analyze the previous output or examine upstream callers/callees instead."
             )
+        elif call_sig in _TOOL_EXECUTION_CACHE:
+            logger.info("Using cached tool execution result for %s", call_sig)
+            res_str = _TOOL_EXECUTION_CACHE[call_sig]
+            record_evidence(t_name, t_args, res_str, evidence_list)
         else:
             tool_fn = TOOLS_BY_NAME.get(t_name)
             if not tool_fn:
@@ -181,6 +191,7 @@ def node_tools(state: AgentState) -> Dict[str, Any]:
             else:
                 try:
                     res_str = str(tool_fn.invoke(t_args))
+                    _TOOL_EXECUTION_CACHE[call_sig] = res_str
                 except Exception as exc:
                     logger.error("Error running tool %s: %s", t_name, exc)
                     res_str = f"Error executing {t_name}: {exc}"
@@ -394,6 +405,7 @@ def investigate_bug(
     llm_override: Optional[Any] = None,
 ) -> RootCauseReport:
     """Synchronously execute the full LangGraph bug investigation workflow."""
+    start_time = time.time()
     cfg = settings or get_settings()
     graph = build_investigation_graph(cfg, llm_override=llm_override)
 
@@ -414,6 +426,28 @@ def investigate_bug(
     report = final_state.get("final_report")
     if not report:
         raise RuntimeError("Investigation concluded without generating a final report.")
+
+    # Auto-fix patch verification
+    patch = extract_diff_patch(report.suggested_fix)
+    if patch:
+        logger.info("Extracted unified diff patch. Initiating auto-fix verification in sandbox...")
+        bug_match = re.search(r"BUG-\d+", text, re.IGNORECASE)
+        bug_hint = bug_match.group(0).upper() if bug_match else None
+        ver_res = verify_fix_in_temp_repo(cfg.target_repo_path, patch, bug_hint=bug_hint)
+        report.fix_verified = ver_res.fix_verified
+        report.fix_verification_output = ver_res.test_output[:1200]
+        logger.info("Auto-fix verification result: verified=%s", report.fix_verified)
+
+    # Save immutable run log to runs/
+    elapsed = time.time() - start_time
+    save_investigation_run(
+        bug_input=text,
+        report=report,
+        steps_taken=report.steps_taken or [f"Step {i+1}" for i in range(final_state.get("step_count", 0))],
+        token_usage=final_state.get("token_usage"),
+        latency_seconds=elapsed,
+    )
+
     return report
 
 
@@ -423,6 +457,7 @@ def stream_investigation(
     llm_override: Optional[Any] = None,
 ) -> Generator[Dict[str, Any], None, None]:
     """Stream step events during investigation for real-time visualization."""
+    stream_start = time.time()
     cfg = settings or get_settings()
     graph = build_investigation_graph(cfg, llm_override=llm_override)
 
@@ -478,7 +513,22 @@ def stream_investigation(
                         "data": hypos[-1]["hypothesis"][:300],
                     }
             elif node_name == "report":
+                rep = node_update.get("final_report")
+                if rep:
+                    patch = extract_diff_patch(rep.suggested_fix)
+                    if patch:
+                        bug_match = re.search(r"BUG-\d+", text, re.IGNORECASE)
+                        bug_hint = bug_match.group(0).upper() if bug_match else None
+                        ver_res = verify_fix_in_temp_repo(cfg.target_repo_path, patch, bug_hint=bug_hint)
+                        rep.fix_verified = ver_res.fix_verified
+                        rep.fix_verification_output = ver_res.test_output[:1200]
+                    save_investigation_run(
+                        bug_input=text,
+                        report=rep,
+                        steps_taken=rep.steps_taken,
+                        latency_seconds=time.time() - stream_start,
+                    )
                 yield {
                     "event": "final_report",
-                    "report": node_update.get("final_report"),
+                    "report": rep,
                 }

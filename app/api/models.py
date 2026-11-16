@@ -81,3 +81,43 @@ class SampleBugsResponse(BaseModel):
     bugs: List[SampleBugItem] = Field(
         default_factory=list, description="List of available sample bugs"
     )
+
+
+class VerifyFixRequest(BaseModel):
+    """Payload for POST /verify_fix."""
+
+    patch: str = Field(..., min_length=10, description="Unified diff patch content")
+    repo_path: Optional[str] = Field(
+        default=None, description="Target repository path override"
+    )
+    bug_hint: Optional[str] = Field(
+        default=None, description="Optional bug identifier or scenario hint"
+    )
+
+
+class VerifyFixResponse(BaseModel):
+    """Response model for POST /verify_fix."""
+
+    patch_applied: bool = Field(..., description="Whether git apply succeeded")
+    fix_verified: bool = Field(..., description="Whether tests passed cleanly in sandbox")
+    test_output: str = Field(..., description="Captured test runner output")
+    execution_time_seconds: float = Field(..., description="Sandbox execution duration in seconds")
+    error_message: Optional[str] = Field(default=None, description="Error details if verification failed")
+
+
+class CloneRepoRequest(BaseModel):
+    """Payload for POST /repo/clone."""
+
+    repo_url: str = Field(..., min_length=8, description="Git clone URL (HTTPS/SSH)")
+    workspace_dir: Optional[str] = Field(
+        default="./workspace", description="Local workspace destination directory"
+    )
+
+
+class CloneRepoResponse(BaseModel):
+    """Response model for POST /repo/clone."""
+
+    status: str = Field(..., description="Clone result: success or error")
+    cloned_path: str = Field(..., description="Local path to cloned repository")
+    message: str = Field(..., description="Status description")
+

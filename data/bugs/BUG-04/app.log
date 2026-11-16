@@ -4,8 +4,8 @@ Running 1 scenario(s) on demo_repo at HEAD
 ============================================================
 
 --> Testing BUG-04 ...
-2026-11-16 19:41:04 [INFO] [shopapp.scenarios] Executing Scenario BUG-04: Applying non-existent coupon code...
-2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-04 reproduced: 'NoneType' object has no attribute 'get'
+2026-11-16 22:35:11 [INFO] [shopapp.scenarios] Executing Scenario BUG-04: Applying non-existent coupon code...
+2026-11-16 22:35:11 [ERROR] [shopapp.scenarios] BUG-04 reproduced: 'NoneType' object has no attribute 'get'
 Traceback (most recent call last):
   File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 80, in scenario_bug_04
     apply_coupon_to_cart(cart["id"], "NONEXISTENT_CODE")

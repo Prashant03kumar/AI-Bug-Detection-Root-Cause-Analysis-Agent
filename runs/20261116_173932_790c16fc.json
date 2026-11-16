@@ -1,0 +1,50 @@
+{
+  "run_id": "790c16fc",
+  "timestamp_utc": "2026-11-16T17:39:32.516245+00:00",
+  "latency_seconds": 1269.24,
+  "token_usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "input": {
+    "bug_text": "2026-11-16 22:35:12 [ERROR] [shopapp.scenarios] BUG-10 reproduced: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)\n[FAIL] BUG-10: GatewayRejection: Converted $49.50 to 0 cents (expected 4950 cents)\n\n============================================================\nSummary: 1/1 failures reproduced\n============================================================\n",
+    "character_count": 374
+  },
+  "steps_count": 7,
+  "steps": [
+    "Step 1",
+    "Step 2",
+    "Step 3",
+    "Step 4",
+    "Step 5",
+    "Step 6",
+    "Step 7"
+  ],
+  "report": {
+    "summary": "Investigation failed to parse structured output: Error calling model 'gemini-3.5-flash-lite' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 500, model: gemini-3.5-flash-lite, description: Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.\\nPlease retry in 14h20m28.201593776s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://aistudio.google.com/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'description': 'Generate content requests per day limit exceeded on Free Tier. See https://aistudio.google.com/docs/rate-limits.', 'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.5-flash-lite', 'location': 'global'}, 'quotaValue': '500'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '51628s'}]}}",
+    "root_cause": "Automated structured synthesis failed; check logs.",
+    "bug_type": "unknown",
+    "file": "unknown",
+    "function": "unknown",
+    "line_start": 1,
+    "line_end": 1,
+    "introducing_commit": null,
+    "evidence": [],
+    "suggested_fix": "Inspect raw trace.",
+    "confidence": 0.1,
+    "confidence_reasoning": "Emergency fallback due to LLM synthesis exception. [Automated validation failed grounding checks; confidence adjusted from 0.10 to 0.10]",
+    "steps_taken": [],
+    "open_questions": [],
+    "grounded": false,
+    "validation_notes": [
+      "Validation Error: File 'unknown' not found in repository.",
+      "Introducing commit was not specified."
+    ],
+    "fix_verified": null,
+    "fix_verification_output": null
+  },
+  "grounded": false,
+  "fix_verified": null,
+  "confidence": 0.1
+}

@@ -1,4 +1,4 @@
-2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-09 reproduced: StaleCacheAnomaly: Warehouse cache returned stale count 50 after reserving 20 units (actual stock: 30)
+2026-11-16 22:35:12 [ERROR] [shopapp.scenarios] BUG-09 reproduced: StaleCacheAnomaly: Warehouse cache returned stale count 50 after reserving 20 units (actual stock: 30)
 [FAIL] BUG-09: StaleCacheAnomaly: Warehouse cache returned stale count 50 after reserving 20 units (actual stock: 30)
 
 ============================================================

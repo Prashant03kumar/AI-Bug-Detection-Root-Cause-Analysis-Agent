@@ -4,8 +4,8 @@ Running 1 scenario(s) on demo_repo at HEAD
 ============================================================
 
 --> Testing BUG-01 ...
-2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-01: Order confirmation for user with None preferences...
-2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-01 reproduced: 'NoneType' object is not subscriptable
+2026-11-16 22:35:11 [INFO] [shopapp.scenarios] Executing Scenario BUG-01: Order confirmation for user with None preferences...
+2026-11-16 22:35:11 [ERROR] [shopapp.scenarios] BUG-01 reproduced: 'NoneType' object is not subscriptable
 Traceback (most recent call last):
   File "C:\Users\pkrit\OneDrive\Desktop\AI Bug Detection & Root-Cause Analysis Agent\bugsleuth\demo_repo\run_scenarios.py", line 39, in scenario_bug_01
     result = send_order_confirmation("usr_002", "ord_test_01", 49.50)

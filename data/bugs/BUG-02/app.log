@@ -4,8 +4,8 @@ Running 1 scenario(s) on demo_repo at HEAD
 ============================================================
 
 --> Testing BUG-02 ...
-2026-11-16 19:41:03 [INFO] [shopapp.scenarios] Executing Scenario BUG-02: Bulk discount for 25 items at $12.00...
-2026-11-16 19:41:03 [ERROR] [shopapp.scenarios] BUG-02 reproduced: CalculationMismatch: Bulk discount for 25 items was $30.00, expected $60.00 (20% tier omitted)
+2026-11-16 22:35:11 [INFO] [shopapp.scenarios] Executing Scenario BUG-02: Bulk discount for 25 items at $12.00...
+2026-11-16 22:35:11 [ERROR] [shopapp.scenarios] BUG-02 reproduced: CalculationMismatch: Bulk discount for 25 items was $30.00, expected $60.00 (20% tier omitted)
 [FAIL] BUG-02: CalculationMismatch: Bulk discount for 25 items was $30.00, expected $60.00 (20% tier omitted)
 
 ============================================================

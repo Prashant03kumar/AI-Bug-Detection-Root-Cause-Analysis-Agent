@@ -4,8 +4,8 @@ Running 1 scenario(s) on demo_repo at HEAD
 ============================================================
 
 --> Testing BUG-07 ...
-2026-11-16 19:41:04 [INFO] [shopapp.scenarios] Executing Scenario BUG-07: Queue notifications across sequential user sessions...
-2026-11-16 19:41:04 [ERROR] [shopapp.scenarios] BUG-07 reproduced: CrossSessionLeak: Default channels list polluted with previous user session state: ['user_audit_usr_001', 'user_audit_usr_002']
+2026-11-16 22:35:12 [INFO] [shopapp.scenarios] Executing Scenario BUG-07: Queue notifications across sequential user sessions...
+2026-11-16 22:35:12 [ERROR] [shopapp.scenarios] BUG-07 reproduced: CrossSessionLeak: Default channels list polluted with previous user session state: ['user_audit_usr_001', 'user_audit_usr_002']
 [FAIL] BUG-07: CrossSessionLeak: Default channels list polluted with previous user session state: ['user_audit_usr_001', 'user_audit_usr_002']
 
 ============================================================

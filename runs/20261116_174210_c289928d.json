@@ -1,0 +1,58 @@
+{
+  "run_id": "c289928d",
+  "timestamp_utc": "2026-11-16T17:42:10.032763+00:00",
+  "latency_seconds": 0.12,
+  "token_usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "input": {
+    "bug_text": "TypeError in test loop",
+    "character_count": 22
+  },
+  "steps_count": 3,
+  "steps": [
+    "parse_input",
+    "read_file",
+    "git_blame"
+  ],
+  "report": {
+    "summary": "Mock investigation summary",
+    "root_cause": "Identified flaw in mock test",
+    "bug_type": "none_undefined_access",
+    "file": "shopapp/users.py",
+    "function": "get_user_notification_preference",
+    "line_start": 35,
+    "line_end": 38,
+    "introducing_commit": "1f3a4dfcbb5999cded20e5f972896788de55604d",
+    "evidence": [
+      {
+        "kind": "code",
+        "source": "shopapp/users.py:38",
+        "snippet": "user['preferences'][channel]",
+        "why_relevant": "Direct subscript without null-check"
+      }
+    ],
+    "suggested_fix": "Restore null check on preferences",
+    "confidence": 0.95,
+    "confidence_reasoning": "Confirmed via mock blame and AST inspection",
+    "steps_taken": [
+      "parse_input",
+      "read_file",
+      "git_blame"
+    ],
+    "open_questions": [],
+    "grounded": true,
+    "validation_notes": [
+      "Line range [35, 38] verified within bounds (38 lines).",
+      "Function 'get_user_notification_preference' confirmed in AST.",
+      "Commit '1f3a4df' verified in git history."
+    ],
+    "fix_verified": null,
+    "fix_verification_output": null
+  },
+  "grounded": true,
+  "fix_verified": null,
+  "confidence": 0.95
+}

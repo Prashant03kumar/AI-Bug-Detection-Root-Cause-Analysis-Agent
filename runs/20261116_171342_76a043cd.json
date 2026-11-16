@@ -1,0 +1,76 @@
+{
+  "run_id": "76a043cd",
+  "timestamp_utc": "2026-11-16T17:13:42.771700+00:00",
+  "latency_seconds": 141.19,
+  "token_usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "input": {
+    "bug_text": "2026-11-16 22:35:12 [ERROR] [shopapp.scenarios] BUG-05 reproduced: PrecisionError: Payment total contains fractional cents: 99.213975\nTraceback (most recent call last):\n  File \"C:\\Users\\pkrit\\OneDrive\\Desktop\\AI Bug Detection & Root-Cause Analysis Agent\\bugsleuth\\demo_repo\\run_scenarios.py\", line 93, in scenario_bug_05\n    breakdown = calculate_payment_breakdown(89.99)\n  File \"C:\\Users\\pkrit\\OneDrive\\Desktop\\AI Bug Detection & Root-Cause Analysis Agent\\bugsleuth\\demo_repo\\shopapp\\payments.py\", line 30, in calculate_payment_breakdown\n    raise ValueError(\n        f\"PrecisionError: Payment total contains fractional cents: {total}\"\n    )\nValueError: PrecisionError: Payment total contains fractional cents: 99.213975\n\n[FAIL] BUG-05: PrecisionError: Payment total contains fractional cents: 99.213975\n\n============================================================\nSummary: 1/1 failures reproduced\n============================================================\n",
+    "character_count": 961
+  },
+  "steps_count": 6,
+  "steps": [
+    "Searched code for calculate_payment_breakdown",
+    "Read shopapp/payments.py",
+    "Found callers of calculate_payment_breakdown",
+    "Executed git_blame on shopapp/payments.py lines 19-34",
+    "Showed commit diff for 8a05e02",
+    "Searched historical similar bugs and logs"
+  ],
+  "report": {
+    "summary": "PrecisionError ValueError raised when payment total contains fractional cents due to unrounded float arithmetic.",
+    "root_cause": "Floating-point multiplication without rounding (subtotal * tax_rate and subtotal * fee_rate) produces precision drift and sub-cent fractional values (e.g., 99.213975), which triggers the strict validation check against round(total, 2).",
+    "bug_type": "float_rounding",
+    "file": "shopapp/payments.py",
+    "function": "calculate_payment_breakdown",
+    "line_start": 25,
+    "line_end": 32,
+    "introducing_commit": "8a05e0202d90927e4152550c1bc4f1c93f747474",
+    "evidence": [
+      {
+        "kind": "code",
+        "source": "shopapp/payments.py:25-32",
+        "snippet": "    # BUG-05: Float arithmetic without rounding produces floating point precision drift\n    tax = subtotal * tax_rate\n    fee = subtotal * fee_rate\n    total = subtotal + tax + fee\n    if total != round(total, 2):\n        raise ValueError(\n            f\"PrecisionError: Payment total contains fractional cents: {total}\"\n        )",
+        "why_relevant": "Identifies the exact lines performing unrounded float calculations and raising the PrecisionError."
+      },
+      {
+        "kind": "diff",
+        "source": "8a05e02",
+        "snippet": "-    tax = round(subtotal * tax_rate, 2)\n-    fee = round(subtotal * fee_rate, 2)\n-    total = round(subtotal + tax + fee, 2)\n+    tax = subtotal * tax_rate\n+    fee = subtotal * fee_rate\n+    total = subtotal + tax + fee",
+        "why_relevant": "Shows the commit patch that removed intermediate rounding."
+      },
+      {
+        "kind": "log",
+        "source": "data/logs/app.log",
+        "snippet": "2026-11-16 22:35:12 [ERROR] [shopapp.scenarios] BUG-05 reproduced: PrecisionError: Payment total contains fractional cents: 99.213975",
+        "why_relevant": "Confirms the exact runtime reproduction and error message."
+      }
+    ],
+    "suggested_fix": "Reintroduce explicit 2-decimal rounding on tax, fee, and total calculations to prevent float precision drift.",
+    "confidence": 1.0,
+    "confidence_reasoning": "The crash site, offending commit, code diff, and reproduction logs were all successfully located and verified via tool execution.",
+    "steps_taken": [
+      "Searched code for calculate_payment_breakdown",
+      "Read shopapp/payments.py",
+      "Found callers of calculate_payment_breakdown",
+      "Executed git_blame on shopapp/payments.py lines 19-34",
+      "Showed commit diff for 8a05e02",
+      "Searched historical similar bugs and logs"
+    ],
+    "open_questions": [],
+    "grounded": true,
+    "validation_notes": [
+      "Line range [25, 32] verified within bounds (59 lines).",
+      "Function 'calculate_payment_breakdown' confirmed in AST.",
+      "Commit '8a05e02' verified in git history."
+    ],
+    "fix_verified": null,
+    "fix_verification_output": null
+  },
+  "grounded": true,
+  "fix_verified": null,
+  "confidence": 1.0
+}

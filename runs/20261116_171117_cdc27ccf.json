@@ -1,0 +1,72 @@
+{
+  "run_id": "cdc27ccf",
+  "timestamp_utc": "2026-11-16T17:11:17.209781+00:00",
+  "latency_seconds": 124.76,
+  "token_usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "input": {
+    "bug_text": "2026-11-16 22:35:11 [ERROR] [shopapp.scenarios] BUG-04 reproduced: 'NoneType' object has no attribute 'get'\nTraceback (most recent call last):\n  File \"C:\\Users\\pkrit\\OneDrive\\Desktop\\AI Bug Detection & Root-Cause Analysis Agent\\bugsleuth\\demo_repo\\run_scenarios.py\", line 80, in scenario_bug_04\n    apply_coupon_to_cart(cart[\"id\"], \"NONEXISTENT_CODE\")\n    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\pkrit\\OneDrive\\Desktop\\AI Bug Detection & Root-Cause Analysis Agent\\bugsleuth\\demo_repo\\shopapp\\cart.py\", line 57, in apply_coupon_to_cart\n    if not coupon.get(\"is_active\"):\n           ^^^^^^^^^^\nAttributeError: 'NoneType' object has no attribute 'get'\n\n[FAIL] BUG-04: 'NoneType' object has no attribute 'get'\n\n============================================================\nSummary: 1/1 failures reproduced\n============================================================\n",
+    "character_count": 893
+  },
+  "steps_count": 4,
+  "steps": [
+    "Located and read shopapp/cart.py around line 57.",
+    "Executed git_blame on shopapp/cart.py lines 50-64.",
+    "Inspected commit diffs for committing authors Ravi (286990e) and Asha (b116e78).",
+    "Queried similar historical bugs and found matching ticket TICK-104."
+  ],
+  "report": {
+    "summary": "AttributeError 'NoneType' object has no attribute 'get' when applying a non-existent coupon code to a cart due to a missing null check.",
+    "root_cause": "In shopapp/cart.py, the function apply_coupon_to_cart fetches a coupon using db.get('coupons', coupon_code). When an invalid or non-existent coupon code is provided, db.get returns None. A refactoring commit (b116e78) removed the explicit 'if coupon is None:' guard clause, causing subsequent calls to coupon.get('is_active') to raise an unhandled AttributeError.",
+    "bug_type": "missing_null_check",
+    "file": "shopapp/cart.py",
+    "function": "apply_coupon_to_cart",
+    "line_start": 57,
+    "line_end": 57,
+    "introducing_commit": "b116e78c4adbc329630f842f8c514459087d5b6c",
+    "evidence": [
+      {
+        "kind": "code",
+        "source": "shopapp/cart.py:30",
+        "snippet": "def apply_coupon_to_cart(cart_id: str, coupon_code: str) -> Dict[str, Any]:\n    cart = get_cart(cart_id)\n    if not cart:\n        raise ValueError(f\"Cart '{cart_id}' not found\")\n    coupon = db.get(\"coupons\", coupon_code)\n    if not coupon.get(\"is_active\"):\n        raise ValueError(f\"Coupon '{coupon_code}' is expired or inactive\")",
+        "why_relevant": "Identified the exact crash site where coupon.get is called without checking if coupon is None."
+      },
+      {
+        "kind": "diff",
+        "source": "b116e78",
+        "snippet": "commit b116e78c4adbc329630f842f8c514459087d5b6c\nAuthor: Asha <asha@shopapp.dev>\nDate:   Fri Oct 23 09:45:00 2026 +0000\n\n    refactor(cart): streamline coupon expiration check\n--- a/shopapp/cart.py\n+++ b/shopapp/cart.py\n@@ -53,8 +53,7 @@ def apply_coupon_to_cart(cart_id: str, coupon_code: str) -> Dict[str, Any]:\n     if not cart:\n         raise ValueError(f\"Cart '{cart_id}' not found\")\n     coupon = db.get(\"coupons\", coupon_code)\n-    if coupon is None:\n-        raise ValueError(f\"Coupon '{coupon_code}' does not exist\")\n+    # BUG-04: Missing null-check if coupon is None raises AttributeError\n     if not coupon.get(\"is_active\"):\n         raise ValueError(f\"Coupon '{coupon_code}' is expired or inactive\")",
+        "why_relevant": "Proves that commit b116e78 removed the explicit null check that previously prevented this AttributeError."
+      },
+      {
+        "kind": "ticket",
+        "source": "TICK-104",
+        "snippet": "Description: Gift code verification threw AttributeError 'NoneType' when a non-existent code was typed into cart checkout.\nResolution: Checked `if code_obj is None` before querying `.is_active` attribute.",
+        "why_relevant": "Historical tickets show a matching failure pattern and identical resolution."
+      }
+    ],
+    "suggested_fix": "Add an explicit null check for the retrieved coupon object before attempting to invoke .get() on it, raising a ValueError if the coupon is not found.\n\n```python\n    coupon = db.get(\"coupons\", coupon_code)\n    if coupon is None:\n        raise ValueError(f\"Coupon '{coupon_code}' does not exist\")\n    if not coupon.get(\"is_active\"):\n        raise ValueError(f\"Coupon '{coupon_code}' is expired or inactive\")\n```",
+    "confidence": 1.0,
+    "confidence_reasoning": "The root cause was conclusively verified via file inspection, git blame, commit diff history, and historical bug tickets. The exact introducing commit and author were identified.",
+    "steps_taken": [
+      "Located and read shopapp/cart.py around line 57.",
+      "Executed git_blame on shopapp/cart.py lines 50-64.",
+      "Inspected commit diffs for committing authors Ravi (286990e) and Asha (b116e78).",
+      "Queried similar historical bugs and found matching ticket TICK-104."
+    ],
+    "open_questions": [],
+    "grounded": true,
+    "validation_notes": [
+      "Line range [57, 57] verified within bounds (69 lines).",
+      "Function 'apply_coupon_to_cart' confirmed in AST.",
+      "Commit 'b116e78' verified in git history."
+    ],
+    "fix_verified": null,
+    "fix_verification_output": null
+  },
+  "grounded": true,
+  "fix_verified": null,
+  "confidence": 1.0
+}
