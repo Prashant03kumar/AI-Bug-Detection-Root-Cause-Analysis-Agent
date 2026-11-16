@@ -5,6 +5,7 @@ env/
 
 # Environment variables
 .env
+.env.example
 
 # Vector database
 chroma_db/
