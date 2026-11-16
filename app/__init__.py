@@ -1,0 +1,1 @@
+"""BugSleuth core application package."""
