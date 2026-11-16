@@ -57,4 +57,30 @@ All notable changes to this project will be documented in this file.
   - `tests/test_chunker.py`: Unit tests for AST function, class, module overview, and syntax error windowing on isolated fixture repos.
   - `tests/test_retriever.py`: Unit tests for code chunk retrieval, hybrid boosting, and ticket queries using deterministic fake embeddings (no live API dependency).
 
+## [Phase 4] - Investigation Tools
+### Added
+- Sandboxed Tool Infrastructure (`app/tools/common.py`):
+  - Path traversal and boundary sandboxing resolving paths strictly within `TARGET_REPO_PATH`.
+  - Output truncation helper capping tool responses to 3000 characters with `[truncated]` marker.
+- 11 LangChain `@tool` implementations in `app/tools/`:
+  - `parse_error`: Parses Python/JS/Java tracebacks and symptom logs into structured error types, messages, ordered stack frames, crash frames, and candidate keywords.
+  - `search_code`: Queries the Chroma vector code index with formatted results and code snippets.
+  - `read_file`: Sandboxed numbered source code reader with window centering.
+  - `get_function_source`: Extracts complete AST source code for functions and class methods.
+  - `find_callers`: Scans repository AST to identify functions/methods invoking a target symbol.
+  - `find_callees`: Scans function bodies to identify all outbound calls.
+  - `git_blame`: Sandboxed line-by-line revision history grouping lines by commit, author, timestamp, and message.
+  - `recent_commits`: Repository or file-level git log inspector.
+  - `show_commit_diff`: Unified patch and diff viewer for individual commits.
+  - `search_logs`: Grep-like search across application logs with timestamp and severity level filters.
+  - `find_similar_bugs`: Historical bug ticket similarity search against `bug_tickets` collection.
+- Registry (`app/tools/__init__.py`):
+  - `ALL_TOOLS` list and `TOOL_DESCRIPTIONS` dictionary for agent orchestration.
+- Verification & Benchmarking:
+  - `tests/test_tools.py`: Unit tests for all 11 tools, directory traversal sandboxing rejection, and `parse_error` verification across all 10 bug scenarios.
+  - `scripts/demo_tools.py`: Chained investigation demo (`parse_error` -> `read_file` -> `git_blame` -> `show_commit_diff`) on BUG-01.
+  - `scripts/check_blame_accuracy.py`: Validated that `git_blame` correctly identifies the true introducing commit for 10/10 bugs (100.0%, exceeding required 8/10).
+  - `scripts/test_gemini_tools.py`: Verified live Gemini model tool-binding and tool-call generation targeting `git_blame`.
+
+
 
