@@ -19,22 +19,66 @@ class BugReportInput(BaseModel):
     )
 
 
-class RootCauseAnalysis(BaseModel):
-    """Structured output report produced by the agent."""
+class Evidence(BaseModel):
+    """Specific piece of supporting evidence gathered during investigation."""
 
-    root_cause: str = Field(..., description="Explanation of why the bug occurred")
-    file_path: Optional[str] = Field(default=None, description="Primary offending file")
-    line_number: Optional[int] = Field(default=None, description="Primary offending line number")
-    evidence: List[str] = Field(
-        default_factory=list,
-        description="Evidence supporting hypothesis (code, commits, logs)",
+    kind: Literal["code", "log", "commit", "ticket", "diff"] = Field(
+        ..., description="Type of evidence"
     )
-    suggested_fix: str = Field(..., description="Code snippet or description of the fix")
-    confidence_score: float = Field(
-        default=0.0,
-        ge=0.0,
-        le=1.0,
-        description="Confidence score between 0.0 and 1.0",
+    source: str = Field(
+        ..., description="Source reference e.g. 'shopapp/users.py:38' or commit hash"
+    )
+    snippet: str = Field(..., description="Excerpt or code snippet")
+    why_relevant: str = Field(..., description="Explanation of why this supports the hypothesis")
+
+
+class RootCauseReport(BaseModel):
+    """Structured final investigation report produced by the agent."""
+
+    summary: str = Field(..., description="High-level summary of the bug and failure mode")
+    root_cause: str = Field(
+        ..., description="In-depth explanation of the underlying root cause mechanism"
+    )
+    bug_type: str = Field(
+        ...,
+        description="Classification category e.g. none_undefined_access, off_by_one, wrong_operator",
+    )
+    file: str = Field(..., description="Offending file relative path in repository")
+    function: str = Field(..., description="Offending function or method name")
+    line_start: int = Field(..., ge=1, description="Starting line number of root cause")
+    line_end: int = Field(..., ge=1, description="Ending line number of root cause")
+    introducing_commit: Optional[str] = Field(
+        default=None,
+        description="Commit hash that introduced the bug, if identified",
+    )
+    evidence: List[Evidence] = Field(
+        default_factory=list,
+        description="List of evidence supporting this conclusion",
+    )
+    suggested_fix: str = Field(
+        ..., description="Recommended fix explanation and optional unified-diff patch"
+    )
+    confidence: float = Field(
+        ..., ge=0.0, le=1.0, description="Confidence score between 0.0 and 1.0"
+    )
+    confidence_reasoning: str = Field(
+        ..., description="Justification for the confidence score"
+    )
+    steps_taken: List[str] = Field(
+        default_factory=list,
+        description="Chronological log of investigative steps taken",
+    )
+    open_questions: List[str] = Field(
+        default_factory=list,
+        description="Unresolved ambiguities or caveats",
+    )
+    grounded: bool = Field(
+        default=False,
+        description="Whether the report passed automated post-hoc validation",
+    )
+    validation_notes: List[str] = Field(
+        default_factory=list,
+        description="Automated validation findings",
     )
 
 

@@ -82,5 +82,25 @@ All notable changes to this project will be documented in this file.
   - `scripts/check_blame_accuracy.py`: Validated that `git_blame` correctly identifies the true introducing commit for 10/10 bugs (100.0%, exceeding required 8/10).
   - `scripts/test_gemini_tools.py`: Verified live Gemini model tool-binding and tool-call generation targeting `git_blame`.
 
+## [Phase 5] - Autonomous LangGraph Investigation Agent with Structured Grounding
+### Added
+- Domain Models (`app/models.py`):
+  - `Evidence`: Structured record capturing evidence kind (`code`, `log`, `commit`, `ticket`, `diff`), file/commit source, raw snippet, and relevance justification.
+  - `RootCauseReport`: Pydantic model enforcing structured diagnostic output including summary, root cause explanation, bug type category, exact file/function/line coordinates, introducing commit hash, gathered evidence chain, unified-diff suggested fix, confidence score (0.0 - 1.0) with reasoning, open questions, and post-hoc grounding flags.
+- Agent State and Prompts:
+  - `app/agent/state.py`: LangGraph state schema (`AgentState`, `Hypothesis`) tracking conversation message sequence, parsed error context, working hypotheses, verified evidence, step counts, and final structured reports.
+  - `app/agent/prompts.py`: Senior debugging engineer system prompts enforcing systematic diagnostic procedure (parse -> inspect crash frame -> follow callers/callees upstream -> git blame/diff -> logs -> hypothesis -> verify against evidence before concluding), prohibiting fabrication of unverified paths/commits.
+- LangGraph Workflow Graph (`app/agent/graph.py`):
+  - State machine with nodes: `parse_input` -> `investigate` (LLM with 11 bound tools) -> `tools` (ToolNode loop) -> `hypothesize` -> `verify` (hypothesis validation against gathered evidence with back-routing to `investigate` on discrepancies) -> `report` (structured extraction via `llm.with_structured_output(RootCauseReport)`).
+  - Safety safeguards: loop and duplicate tool-call detection to suppress repetitive queries, hard step limits (`MAX_AGENT_STEPS`), graceful degradation for tool/LLM failures, and real-time streaming generator `stream_investigation()`.
+- Grounding Validation (`app/agent/validate.py`):
+  - Post-hoc fact checker validating that report files exist in repository, line ranges are within real file bounds, function names exist in file AST, and introducing commits exist in real git history. Automatically caps confidence at 0.40 and records diagnostic notes if ungrounded claims are detected.
+- CLI Runner & Offline Testing:
+  - `scripts/run_agent.py`: CLI driver supporting `--bug <ID>` and `--text "..."` with streaming thought traces, tool calls, and formatted terminal reports.
+  - `tests/test_agent_offline.py`: Deterministic offline pytest suite validating LangGraph state transitions and step-limit enforcement using a scripted mock chat model.
+- Live Agent Evaluation:
+  - Validated live agent across 3 real injected bug scenarios (`BUG-01`, `BUG-03`, `BUG-06`), achieving 100% ground-truth alignment on introducing commits, offending files, functions, line numbers, and passing post-hoc grounding validation (`grounded=True`, `confidence=1.0`).
+
+
 
 
