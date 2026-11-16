@@ -135,6 +135,29 @@ All notable changes to this project will be documented in this file.
 - **Performance Delta**:
   - Agent outperformed raw LLM by **+50.0%** on file localization, **+100.0%** on git commit attribution, **+100.0%** on fact grounding, and **+80.0%** on bug categorization, comfortably surpassing the required $\ge 70\%$ threshold.
 
+## [Phase 7] - FastAPI Backend and Streamlit UI
+### Added
+- FastAPI Backend Service (`app/api/main.py`):
+  - `POST /investigate`: Synchronous investigation endpoint returning structured `RootCauseReport` JSON with custom reasoning steps and repository path overrides.
+  - `GET /investigate/stream`: Server-Sent Events (SSE) streaming endpoint delivering real-time agent updates (`parsed_error`, `thought`, `tool_call`, `tool_result`, `hypothesis`, `final_report`, `completed`).
+  - `POST /index/rebuild` & `GET /index/status`: Background task worker and thread-safe state manager for full repository and ticket re-indexing with progress tracking.
+  - `GET /health`: Component health inspection checking Gemini API key presence, repository directory existence, and Chroma vector collection counts.
+  - `GET /bugs`: Dynamic scenario catalog scanning `data/bugs/` to discover test failure cases for frontend consumption without hardcoding.
+  - Infrastructure: In-memory sliding-window rate limiting middleware (60 req/min per IP with exempt monitoring paths), CORS middleware for local dev, and unified JSON exception handlers.
+- API Schema Models (`app/api/models.py`):
+  - Strongly typed Pydantic v2 schemas: `InvestigateRequest`, `InvestigateOptions`, `IndexStatusResponse`, `RebuildIndexResponse`, `HealthResponse`, `SampleBugItem`, and `SampleBugsResponse`.
+- Streamlit Interactive UI (`ui/streamlit_app.py`):
+  - Control Sidebar: API health indicator, live index collection counters, "Rebuild Index" button with asynchronous polling, sample bug scenario dropdown selector, and step-limit tuning slider.
+  - Live Investigation Panel: Real-time event consumption via SSE displaying progressive tool calls, arguments, and intermediate findings inside an animated progress container.
+  - Structured Diagnostic Report View: High-level summary card, key metrics (confidence percentage, offending `file:line`, symbol name, introducing commit), and automated post-hoc validation badge (`GROUNDED` vs `UNVERIFIED`).
+  - Deep-Dive Tabs: Root Cause Diagnosis, Syntax-highlighted unified diff patch (`st.code(..., language="diff")`), categorized evidence tabs (Code, Commits/Diffs, Logs, Tickets), and chronological investigative trail.
+  - Report Export: One-click download buttons for JSON (`bug_report_*.json`) and GitHub-flavored Markdown (`bug_report_*.md`).
+- Developer Launcher & Verification:
+  - `scripts/run_dev.py` & `scripts/run_dev.ps1`: Dual-server runner managing FastAPI (:8000) and Streamlit (:8501) with clean subprocess lifecycle and shutdown handling.
+  - `scripts/verify_phase7.py`: Comprehensive verification script testing `/health`, `/bugs`, `/investigate/stream`, `/investigate`, and Streamlit headless startup.
+  - `tests/test_api.py`: 8 FastAPI TestClient tests covering all endpoints, error handling, input validation, and rate limiter enforcement.
+
+
 
 
 
